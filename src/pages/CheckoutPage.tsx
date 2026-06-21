@@ -1,12 +1,18 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { CartList } from '@/components/CartList'
 import { cartCount, cartTotal, useCartStore } from '@/store/cart'
-import { getPaymentProvider } from '@/lib/payment'
+import {
+  clearPendingPayPayId,
+  confirmPayPayPayment,
+  getPaymentProvider,
+  getPendingPayPayId,
+} from '@/lib/payment'
 import { getOrderRepository } from '@/lib/orders'
 
 export function CheckoutPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const items = useCartStore((s) => s.items)
   const increment = useCartStore((s) => s.increment)
   const decrement = useCartStore((s) => s.decrement)
@@ -14,22 +20,74 @@ export function CheckoutPage() {
   const clear = useCartStore((s) => s.clear)
 
   const [paying, setPaying] = useState(false)
+  // PayPay から戻った直後（?pp=return）は最初から確認画面を出す
+  const [confirming, setConfirming] = useState(
+    () => new URLSearchParams(window.location.search).get('pp') === 'return',
+  )
   const [error, setError] = useState<string | null>(null)
 
   const total = cartTotal(items)
   const count = cartCount(items)
+
+  // PayPay の決済ページから戻ってきた時（?pp=return&mpid=...）の支払い確認 → 注文作成
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    if (params.get('pp') !== 'return') return
+    const mpid = params.get('mpid') ?? getPendingPayPayId()
+    if (!mpid) {
+      setError('決済情報が見つかりませんでした')
+      return
+    }
+    let cancelled = false
+    setConfirming(true)
+    ;(async () => {
+      try {
+        const ok = await confirmPayPayPayment(mpid)
+        if (cancelled) return
+        if (!ok) {
+          setError('PayPayの支払いが確認できませんでした。もう一度お試しください。')
+          setConfirming(false)
+          return
+        }
+        const current = useCartStore.getState().items
+        if (current.length === 0) {
+          setError('カートが空のため注文を作成できませんでした')
+          setConfirming(false)
+          return
+        }
+        const { id } = await getOrderRepository().createOrder(
+          { items: current, total: cartTotal(current) },
+          'paypay',
+        )
+        clearPendingPayPayId()
+        useCartStore.getState().clear()
+        navigate(`/order/${id}`)
+      } catch (e) {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : '支払い確認に失敗しました')
+          setConfirming(false)
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+    // 初回マウント時のみ
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handlePay = async () => {
     if (count === 0 || paying) return
     setError(null)
     setPaying(true)
     try {
-      // 1) 決済（デモはモック。VITE_PAYMENT_MODE で本番 PayPay に差し替え可能）
+      // 1) 決済（mock=モーダル / paypay=リダイレクト）。VITE_PAYMENT_MODE で切替
       const draft = { items, total }
       const result = await getPaymentProvider().pay(total, draft)
+      // ※ paypay はここでリダイレクトするため以降は実行されない（戻った後に useEffect で処理）
       if (!result.success) {
         setPaying(false)
-        return // ユーザーがキャンセル
+        return // ユーザーがキャンセル（mock）
       }
       // 2) 決済成功 → 注文を作成（Firestore もしくはローカル同期）
       const { id } = await getOrderRepository().createOrder(
@@ -45,11 +103,29 @@ export function CheckoutPage() {
     }
   }
 
+  // PayPay 戻り確認中の表示
+  if (confirming) {
+    return (
+      <div className="app-bg flex min-h-full flex-col items-center justify-center p-6 text-center">
+        <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-paypay/30 border-t-paypay" />
+        <p className="text-lg font-bold text-gray-700">
+          支払いを確認しています…
+        </p>
+        <p className="mt-1 text-sm text-gray-400">少々お待ちください</p>
+      </div>
+    )
+  }
+
   if (count === 0) {
     return (
       <div className="app-bg flex min-h-full flex-col items-center justify-center p-6 text-center">
         <div className="mb-3 text-6xl">🛒</div>
         <p className="mb-5 text-gray-500">カートが空です</p>
+        {error && (
+          <p className="mb-4 rounded-2xl bg-red-50 px-3 py-2 text-sm font-medium text-red-500">
+            {error}
+          </p>
+        )}
         <Link
           to="/menu"
           className="btn-press rounded-full bg-brand px-7 py-3 font-bold text-white shadow-lg"

@@ -152,14 +152,28 @@ git push -u origin main
 
 ---
 
-## 🔁 デモ → 本番（PayPay）への切り替え
+## 🔁 PayPay 決済（サンドボックス / 本番）
 
-決済は `src/lib/payment/` でインターフェース抽象化されています。
+決済は `src/lib/payment/` で抽象化され、`VITE_PAYMENT_MODE` で切り替わります（`mock` / `paypay`）。
+`paypay` モードは **PayPay for Developers のサンドボックス**（加盟店契約なしでテスト可能）に対応済みです。
 
-1. `VITE_PAYMENT_MODE=paypay` に変更（`getPaymentProvider()` が実装を切替）。
-2. `src/lib/payment/paypay.ts` の `PayPayPaymentProvider.pay()` を実装。
-   - PayPay は法人の加盟店契約・審査が必要。シークレットを扱うため、ブラウザから直接ではなく
-     **Vercel Serverless Functions（`/api`）経由**で API を呼ぶ設計にすること。
+**仕組み**
+- ブラウザ → サーバー関数 `api/paypay/create.js`（`QRCodeCreate`）で決済URLを取得 → PayPay の決済ページへリダイレクト。
+- 支払い後 `/checkout?pp=return&mpid=...` に戻り、`api/paypay/status.js`（`GetCodePaymentDetails`）で `COMPLETED` を確認してから注文を作成。
+- 秘密鍵（API_SECRET）は **サーバー関数（/api）でのみ** 使用。環境変数に `VITE_` を付けない＝ブラウザに露出しない。
+
+**設定手順**
+1. [PayPay for Developers](https://developer.paypay.ne.jp/) に登録し、サンドボックスの
+   `API_KEY` / `API_SECRET` / `MERCHANT_ID` を取得。
+2. Vercel の **Environment Variables** に登録（`VITE_` は付けない）:
+   - `PAYPAY_API_KEY` / `PAYPAY_API_SECRET` / `PAYPAY_MERCHANT_ID`
+   - あわせて `VITE_PAYMENT_MODE=paypay` に変更（クライアントを PayPay モードに切替）。
+3. 再デプロイ（git push で自動）。本番URLで「PayPayで支払う」を押すとサンドボックス決済が動きます。
+
+**注意**
+- `/api` は **Vercel 上**（または `vercel dev`）でのみ動作。プレーンな `npm run dev` では動かないので、
+  ローカル確認は `VITE_PAYMENT_MODE=mock` のままにする。
+- 本番化するときは `api/paypay/*.js` の `env: 'STAGING'` を `'PROD'` にし、本番の加盟店契約・鍵に差し替える。
 
 ---
 
@@ -167,7 +181,7 @@ git push -u origin main
 
 | 項目 | 場所 | 内容 |
 |---|---|---|
-| 決済 | `src/lib/payment/paypay.ts` | PayPay 本番実装に差し替え |
+| 決済 | `src/lib/payment/paypay.ts` ＋ `api/paypay/*.js` | PayPay 連携済み（サンドボックス）。本番は env を PROD に |
 | パスワード | `src/lib/gate.ts` / 環境変数 | 簡易ゲート → 本格認証は別途設計 |
 | メニュー供給元 | `src/data/menu.ts` | コード定数 → CMS / 管理画面等 |
 | 同期方式 | `src/lib/orders/index.ts` | Firestore / ローカルを自動選択 |
