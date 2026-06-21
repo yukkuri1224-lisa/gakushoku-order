@@ -1,0 +1,20 @@
+rules_version = '2';
+
+// ⚠ デモ用のオープンなルール（誰でも読み書き可）。
+//   学生画面・スタッフ画面のどちらもクライアントから直接 orders / dailyCounters を
+//   読み書きするため、デモでは全許可にしている。
+//   実運用では必ず認証・権限制御（スタッフのみ status 更新可 等）を入れること。
+//
+// 反映方法（どちらでも可）:
+//   A) Firebase コンソールで Firestore を「テストモード」で開始する（30日有効の全許可）。
+//   B) Firebase CLI でこのファイルをデプロイする:  firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /orders/{orderId} {
+      allow read, write: if true;
+    }
+    match /dailyCounters/{dateId} {
+      allow read, write: if true;
+    }
+  }
+}

@@ -1,0 +1,20 @@
+# dependencies
+node_modules
+
+# build output
+dist
+dist-ssr
+dev-dist
+
+# env files（実値は GitHub に上げない。Vercel の環境変数に登録する）
+.env
+.env.local
+.env.*.local
+
+# misc
+*.local
+*.log
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea

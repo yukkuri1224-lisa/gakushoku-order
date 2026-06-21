@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    'Hiragino Kaku Gothic ProN',
+    'Noto Sans JP',
+    Meiryo,
+    sans-serif;
+}
+
+@layer components {
+  /* 暖色のやわらかい背景（学食らしい温かみ） */
+  .app-bg {
+    background:
+      radial-gradient(1200px 480px at 50% -10%, #ffe8cf 0%, transparent 60%),
+      linear-gradient(180deg, #fff7ed 0%, #fff 38%);
+  }
+
+  /* タップ時に少し沈むボタン共通挙動 */
+  .btn-press {
+    @apply transition-transform duration-100 active:scale-95;
+  }
+}
+
+/* スクロールバーを控えめに */
+* {
+  scrollbar-width: thin;
+}
