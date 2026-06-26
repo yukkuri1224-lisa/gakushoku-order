@@ -7,9 +7,9 @@ import { beep, vibrate } from '@/lib/sound'
 
 const STEPS: OrderStatus[] = ['paid', 'preparing', 'completed']
 const STEP_EMOJI: Record<OrderStatus, string> = {
-  paid: '🧾',
-  preparing: '🍳',
-  completed: '🔔',
+  paid: '',
+  preparing: '',
+  completed: '',
 }
 
 export function OrderStatusPage() {
