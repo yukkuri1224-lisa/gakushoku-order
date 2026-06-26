@@ -12,20 +12,14 @@ export function MenuCard({
   return (
     <div className="group relative overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-black/5">
       {/* サムネイル */}
-      <div
-        className={`relative flex h-28 items-center justify-center ${item.tint}`}
-      >
-        {item.image ? (
+      <div className="relative flex h-28 items-center justify-center bg-gray-100">
+        {item.image && (
           <img
             src={item.image}
             alt={item.name}
             className="h-full w-full object-cover"
             loading="lazy"
           />
-        ) : (
-          <span className="text-6xl drop-shadow-sm transition-transform duration-300 group-hover:scale-110">
-            {item.emoji}
-          </span>
         )}
         {quantity > 0 && (
           <span className="absolute right-2 top-2 flex h-7 min-w-7 items-center justify-center rounded-full bg-white/90 px-2 text-sm font-extrabold text-brand shadow">
