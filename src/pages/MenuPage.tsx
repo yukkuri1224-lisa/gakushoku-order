@@ -30,13 +30,10 @@ export function MenuPage() {
       {/* ヒーローヘッダー */}
       <header className="bg-gradient-to-br from-brand to-brand-dark px-5 pb-6 pt-7 text-white shadow-md">
         <div className="mx-auto max-w-md">
-          <p className="text-sm font-medium text-white/80">こんにちは 👋</p>
+          <h1 className="text-sm font-medium text-white/80">ようこそLiSA校食堂へ</h1>
           <h1 className="text-2xl font-black tracking-tight">
-            今日は何を食べる？
+            タップしてカートに追加してください
           </h1>
-          <p className="mt-1 text-sm text-white/80">
-            タップしてカートに追加してね
-          </p>
         </div>
       </header>
 
