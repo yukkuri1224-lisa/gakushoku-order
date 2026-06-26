@@ -21,7 +21,6 @@ export function GatePage() {
     <div className="app-bg flex min-h-full flex-col items-center justify-center p-6">
       <div className="w-full max-w-sm animate-slide-up">
         <div className="mb-8 text-center">
-          <div className="mb-3 inline-block animate-float text-7xl">🍜</div>
           <h1 className="text-3xl font-black tracking-tight text-gray-900">
             LiSA校学食モバイルオーダー
           </h1>
