@@ -10,8 +10,6 @@ export interface MenuItem {
   id: string
   name: string
   price: number
-  emoji: string
-  tint: string
   image?: string
   tagline?: string
 }
