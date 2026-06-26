@@ -23,10 +23,10 @@ export function GatePage() {
         <div className="mb-8 text-center">
           <div className="mb-3 inline-block animate-float text-7xl">🍜</div>
           <h1 className="text-3xl font-black tracking-tight text-gray-900">
-            学食モバイルオーダー
+            LiSA校学食モバイルオーダー
           </h1>
           <p className="mt-2 text-sm text-gray-500">
-            並ばずにスマホでらくらく注文 🎉
+            並ばずにスマホで注文できます
           </p>
         </div>
 
@@ -35,7 +35,7 @@ export function GatePage() {
           className="space-y-3 rounded-3xl bg-white/80 p-5 shadow-card ring-1 ring-black/5 backdrop-blur"
         >
           <label className="block text-sm font-bold text-gray-600">
-            合言葉を入力
+            モバイルオーダー用パスワードを入力
           </label>
           <input
             type="password"
@@ -44,7 +44,7 @@ export function GatePage() {
               setPw(e.target.value)
               setError(false)
             }}
-            placeholder="合言葉"
+            placeholder="パスワード"
             autoFocus
             className={`w-full rounded-2xl border-2 px-4 py-3 text-center text-lg outline-none transition ${
               error
@@ -54,7 +54,7 @@ export function GatePage() {
           />
           {error && (
             <p className="text-center text-sm font-bold text-red-500">
-              合言葉が違います 🙅
+              パスワードが違います
             </p>
           )}
           <button
@@ -70,7 +70,7 @@ export function GatePage() {
             to="/staff"
             className="text-sm font-medium text-gray-400 underline-offset-4 hover:underline"
           >
-            🧑‍🍳 食堂スタッフの方はこちら
+            食堂スタッフの方はこちら
           </Link>
         </div>
       </div>
