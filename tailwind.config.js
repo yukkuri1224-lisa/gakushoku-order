@@ -7,7 +7,7 @@ export default {
         // PayPay 風の赤系アクセント / 学食オレンジ
         paypay: '#ff0033',
         brand: {
-          DEFAULT: '#ffffff',
+          DEFAULT: '#ff7a00',
           dark: '#e96b00',
           light: '#ff9a3c',
         },
