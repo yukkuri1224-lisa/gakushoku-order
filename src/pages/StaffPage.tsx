@@ -31,9 +31,9 @@ function StaffGate({ onPass }: { onPass: () => void }) {
     <div className="app-bg flex min-h-full flex-col items-center justify-center p-6">
       <div className="w-full max-w-sm animate-slide-up">
         <div className="mb-8 text-center">
-          <div className="mb-3 inline-block animate-float text-7xl">🧑‍🍳</div>
+          <div className="mb-3 inline-block animate-float text-7xl">Lisa校学食モバイルオーダー</div>
           <h1 className="text-2xl font-black text-gray-900">食堂スタッフ画面</h1>
-          <p className="mt-1 text-sm text-gray-500">スタッフ用合言葉を入力</p>
+          <p className="mt-1 text-sm text-gray-500">スタッフ用パスワードを入力</p>
         </div>
         <form
           onSubmit={submit}
@@ -46,7 +46,7 @@ function StaffGate({ onPass }: { onPass: () => void }) {
               setPw(e.target.value)
               setError(false)
             }}
-            placeholder="スタッフ合言葉"
+            placeholder="スタッフパスワード"
             autoFocus
             className={`w-full rounded-2xl border-2 px-4 py-3 text-center text-lg outline-none transition ${
               error
@@ -56,7 +56,7 @@ function StaffGate({ onPass }: { onPass: () => void }) {
           />
           {error && (
             <p className="text-center text-sm font-bold text-red-500">
-              合言葉が違います 🙅
+              パスワードが違います
             </p>
           )}
           <button
@@ -109,7 +109,7 @@ function StaffBoard() {
       <header className="bg-gradient-to-br from-gray-800 to-gray-900 px-5 py-5 text-white shadow-md">
         <div className="mx-auto flex max-w-2xl items-center justify-between">
           <div>
-            <h1 className="text-xl font-black">🧑‍🍳 厨房ボード</h1>
+            <h1 className="text-xl font-black">厨房ボード</h1>
             <p className="text-xs text-white/70">
               進行中の注文 {orders.length} 件
             </p>
@@ -128,7 +128,6 @@ function StaffBoard() {
 
         {orders.length === 0 ? (
           <div className="py-20 text-center">
-            <div className="mb-2 text-6xl">🍽️</div>
             <p className="text-gray-400">進行中の注文はありません</p>
           </div>
         ) : (
@@ -177,14 +176,14 @@ function StaffBoard() {
                       onClick={() => setStatus(o.id, 'preparing')}
                       className="btn-press flex-1 rounded-full border-2 border-amber-300 bg-amber-50 py-2.5 font-bold text-amber-700"
                     >
-                      🍳 調理開始
+                      調理開始
                     </button>
                   )}
                   <button
                     onClick={() => setStatus(o.id, 'completed')}
                     className="btn-press flex-1 rounded-full bg-green-600 py-2.5 font-bold text-white shadow"
                   >
-                    ✅ 調理完了
+                    調理完了
                   </button>
                 </div>
               </div>
