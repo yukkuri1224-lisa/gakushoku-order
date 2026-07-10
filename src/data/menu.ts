@@ -27,5 +27,6 @@ export const MENU: MenuItem[] = [
     name: 'カレーライス',
     price: 480,
     tagline: '程よい辛さ',
+    image: '/image/IMG_2854.jpeg'
   },
 ]
