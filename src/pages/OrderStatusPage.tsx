@@ -49,7 +49,6 @@ export function OrderStatusPage() {
   if (!order) {
     return (
       <div className="app-bg flex min-h-full flex-col items-center justify-center p-6 text-center">
-        <div className="mb-3 text-6xl">🤔</div>
         <p className="mb-5 text-gray-500">注文が見つかりませんでした</p>
         <Link
           to="/menu"
@@ -90,7 +89,6 @@ export function OrderStatusPage() {
 
         {done ? (
           <div className="mt-4 animate-pop-in rounded-3xl border-2 border-green-400 bg-green-50 p-6 text-center">
-            <div className="animate-float text-6xl">🔔</div>
             <p className="mt-2 text-2xl font-black text-green-700">
               お受け取りいただけます！
             </p>
@@ -138,7 +136,7 @@ export function OrderStatusPage() {
               })}
             </ol>
             <p className="mt-5 text-center text-sm text-gray-500">
-              調理が完了するとこの画面でお知らせします 🔔
+              調理が完了するとこの画面でお知らせします
             </p>
           </div>
         )}
