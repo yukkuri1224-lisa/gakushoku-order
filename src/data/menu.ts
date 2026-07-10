@@ -19,12 +19,13 @@ export const MENU: MenuItem[] = [
     id: 'ramen',
     name: 'ラーメン',
     price: 430,
-    tagline: '定番の一杯',
+    tagline: 'おすすめ',
+    image: '/image/IMG_2853.jpeg'
   },
   {
     id: 'curry',
     name: 'カレーライス',
     price: 480,
-    tagline: 'スパイス香る',
+    tagline: '程よい辛さ',
   },
 ]
