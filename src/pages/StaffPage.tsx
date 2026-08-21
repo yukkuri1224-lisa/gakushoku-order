@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { getOrderRepository } from '@/lib/orders'
-import { SyncModeBanner } from '@/components/SyncModeBanner'
 import { StatusBadge } from '@/components/StatusBadge'
 import { STAFF_KEY, STAFF_PASSWORD, isGateOpen, openGate } from '@/lib/gate'
 import type { Order, OrderStatus } from '@/types/order'
