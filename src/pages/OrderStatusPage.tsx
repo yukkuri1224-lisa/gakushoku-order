@@ -65,7 +65,6 @@ export function OrderStatusPage() {
   return (
     <div className="app-bg min-h-full p-4">
       <div className="mx-auto max-w-md">
-        <SyncModeBanner />
 
         {/* 注文番号ヒーロー */}
         <div
