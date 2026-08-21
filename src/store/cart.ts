@@ -54,7 +54,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: 'gakushoku.cart',
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
     },
   ),
 )
