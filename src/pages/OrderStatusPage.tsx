@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getOrderRepository } from '@/lib/orders'
-import { SyncModeBanner } from '@/components/SyncModeBanner'
 import { STATUS_LABEL, type Order, type OrderStatus } from '@/types/order'
 import { beep, vibrate } from '@/lib/sound'
 
