@@ -12,9 +12,8 @@ export const ACCESS_PASSWORD =
 export const STAFF_PASSWORD = import.meta.env.VITE_STAFF_PASSWORD ?? 'staff2026'
 
 export function isGateOpen(key: string): boolean {
-  return sessionStorage.getItem(key) === '1'
+  return localStorage.getItem(key) === '1'
 }
-
 export function openGate(key: string): void {
-  sessionStorage.setItem(key, '1')
+  localStorage.setItem(key, '1')
 }
