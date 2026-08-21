@@ -123,7 +123,6 @@ function StaffBoard() {
       </header>
 
       <main className="mx-auto max-w-2xl p-4">
-        <SyncModeBanner />
 
         {orders.length === 0 ? (
           <div className="py-20 text-center">
