@@ -11,46 +11,44 @@ export function PaymentModalHost() {
   if (!open) return null
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="PayPay モック決済"
-    >
-      <div className="w-full max-w-sm animate-sheet-up rounded-t-3xl bg-white p-6 shadow-float sm:animate-pop-in sm:rounded-3xl">
-        <div className="mx-auto mb-1 h-1.5 w-10 rounded-full bg-gray-200 sm:hidden" />
-
-        <div className="mb-5 mt-3 flex flex-col items-center">
-          <div className="mb-2 rounded-xl bg-paypay px-5 py-1.5 text-2xl font-black italic tracking-tight text-white shadow">
+    <div className="fixed inset-0 z-50 flex animate-fade-in items-end justify-center bg-black/40">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="PayPay モック決済"
+        className="pb-safe w-full max-w-md animate-sheet-up rounded-t-xl bg-white px-4 pt-6 shadow-sheet"
+      >
+        <div className="flex flex-col items-center">
+          <span className="rounded-lg bg-paypay px-4 py-1 text-xl font-bold italic text-white">
             PayPay
-          </div>
-          <p className="text-xs font-medium text-gray-400">
-            モック決済（デモ）
-          </p>
+          </span>
+          <p className="mt-2 text-xs text-ink-sub">モック決済（デモ）</p>
         </div>
 
-        <div className="rounded-2xl bg-gray-50 py-5 text-center">
-          <p className="text-sm text-gray-500">お支払い金額</p>
-          <p className="text-4xl font-black text-gray-900">
+        <div className="mt-5 rounded-lg bg-surface py-5 text-center">
+          <p className="text-sm text-ink-sub">お支払い金額</p>
+          <p className="mt-1 text-3xl font-bold tabular-nums">
             ¥{amount.toLocaleString()}
           </p>
         </div>
 
         <button
+          type="button"
           onClick={approve}
-          className="btn-press mt-5 w-full rounded-full bg-paypay py-3.5 text-lg font-bold text-white shadow-lg"
+          className="mt-5 h-[52px] w-full rounded-lg bg-paypay text-base font-bold text-white active:opacity-90"
         >
           支払う
         </button>
         <button
+          type="button"
           onClick={cancel}
-          className="mt-1 w-full rounded-full py-3 font-medium text-gray-400"
+          className="mt-1 h-11 w-full text-sm text-ink-sub"
         >
           キャンセル
         </button>
 
-        <p className="mt-3 text-center text-[11px] leading-relaxed text-gray-400">
-          ※これはデモ用のモック画面です。実際の決済は行われません。
+        <p className="mt-2 text-center text-[11px] text-ink-faint">
+          これはデモ用のモック画面です。実際の決済は行われません。
         </p>
       </div>
     </div>

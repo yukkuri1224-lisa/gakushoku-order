@@ -131,7 +131,7 @@ export function CheckoutPage() {
   // PayPay 戻り確認中
   if (confirming) {
     return (
-      <div className="flex min-h-full flex-col items-center justify-center p-6 text-center">
+      <div className="flex min-h-dvh flex-col items-center justify-center p-6 text-center">
         <div
           className="mb-5 h-10 w-10 animate-spin rounded-full border-[3px] border-ink-line border-t-ink"
           aria-hidden="true"
@@ -145,7 +145,7 @@ export function CheckoutPage() {
   // 支払い済み・注文登録に失敗
   if (failed) {
     return (
-      <div className="flex min-h-full flex-col">
+      <div className="flex min-h-dvh flex-col">
         <AppHeader title="注文の登録" />
         <main className="mx-auto w-full max-w-md flex-1 px-4 pt-10 text-center">
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success text-white">
@@ -179,7 +179,7 @@ export function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="flex min-h-full flex-col">
+      <div className="flex min-h-dvh flex-col">
         <AppHeader title="注文の確認" back="/menu" />
         <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-4 text-center">
           <p className="text-base font-bold">カートは空です</p>
@@ -196,7 +196,7 @@ export function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-full bg-white pb-32">
+    <div className="min-h-dvh bg-white pb-32">
       <AppHeader title="注文の確認" back="/menu" />
 
       <main className="mx-auto max-w-md px-4">

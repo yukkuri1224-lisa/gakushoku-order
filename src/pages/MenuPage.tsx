@@ -36,7 +36,7 @@ export function MenuPage() {
   }
 
   return (
-    <div className="min-h-full bg-white pb-32">
+    <div className="min-h-dvh bg-white pb-32">
       <AppHeader title="LiSA校食堂" cartCount={count} />
       <PickupBar />
 

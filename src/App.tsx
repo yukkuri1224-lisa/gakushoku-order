@@ -11,7 +11,7 @@ import { GATE_KEY } from '@/lib/gate'
 
 export default function App() {
   return (
-    <div className="min-h-full bg-white text-ink">
+    <div className="min-h-dvh bg-white text-ink">
       <Routes>
         <Route path="/" element={<GatePage />} />
         <Route

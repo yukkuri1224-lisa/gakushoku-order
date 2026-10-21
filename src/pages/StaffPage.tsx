@@ -1,80 +1,49 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getOrderRepository } from '@/lib/orders'
+import { changedOptions, itemKey } from '@/lib/menuOptions'
 import { StatusBadge } from '@/components/StatusBadge'
+import { PasscodeScreen } from '@/components/PasscodeScreen'
 import { STAFF_KEY, STAFF_PASSWORD, isGateOpen, openGate } from '@/lib/gate'
-import type { Order, OrderStatus } from '@/types/order'
+import type { Order, OrderStatus, SelectedOption } from '@/types/order'
 import { beep } from '@/lib/sound'
 
 export function StaffPage() {
   const [authed, setAuthed] = useState(() => isGateOpen(STAFF_KEY))
-  if (!authed) return <StaffGate onPass={() => setAuthed(true)} />
+  if (!authed) {
+    return (
+      <PasscodeScreen
+        eyebrow="LiSA校 学食"
+        title="厨房ボード"
+        description="スタッフ用の画面です。新しい注文が入ると通知音でお知らせします。"
+        label="スタッフ用の合言葉"
+        submitLabel="ひらく"
+        onSubmit={(pw) => {
+          if (pw !== STAFF_PASSWORD) return false
+          openGate(STAFF_KEY)
+          setAuthed(true)
+          return true
+        }}
+        footer={{ to: '/', label: '注文画面に戻る' }}
+      />
+    )
+  }
   return <StaffBoard />
 }
 
-function StaffGate({ onPass }: { onPass: () => void }) {
-  const [pw, setPw] = useState('')
-  const [error, setError] = useState(false)
-
-  const submit = (e: FormEvent) => {
-    e.preventDefault()
-    if (pw === STAFF_PASSWORD) {
-      openGate(STAFF_KEY)
-      onPass()
-    } else {
-      setError(true)
-    }
-  }
-
+/**
+ * 初期値から変えた選択肢の表示。
+ * 追加料金のあるもの（大盛り）はアクセント、それ以外（福神漬けなし等）は注意色で目立たせる。
+ */
+function OptionChip({ option }: { option: SelectedOption }) {
+  const cls =
+    option.priceDelta > 0
+      ? 'bg-accent-bg text-accent-fg'
+      : 'border border-danger text-danger'
   return (
-    <div className="app-bg flex min-h-full flex-col items-center justify-center p-6">
-      <div className="w-full max-w-sm animate-slide-up">
-        <div className="mb-8 text-center">
-          <div className="mb-3 inline-block animate-float text-7xl">Lisa校学食モバイルオーダー</div>
-          <h1 className="text-2xl font-black text-gray-900">食堂スタッフ画面</h1>
-          <p className="mt-1 text-sm text-gray-500">スタッフ用パスワードを入力</p>
-        </div>
-        <form
-          onSubmit={submit}
-          className="space-y-3 rounded-3xl bg-white/80 p-5 shadow-card ring-1 ring-black/5 backdrop-blur"
-        >
-          <input
-            type="password"
-            value={pw}
-            onChange={(e) => {
-              setPw(e.target.value)
-              setError(false)
-            }}
-            placeholder="スタッフパスワード"
-            autoFocus
-            className={`w-full rounded-2xl border-2 px-4 py-3 text-center text-lg outline-none transition ${
-              error
-                ? 'border-red-300 bg-red-50'
-                : 'border-gray-200 focus:border-brand'
-            }`}
-          />
-          {error && (
-            <p className="text-center text-sm font-bold text-red-500">
-              パスワードが違います
-            </p>
-          )}
-          <button
-            type="submit"
-            className="btn-press w-full rounded-2xl bg-brand py-3.5 text-lg font-bold text-white shadow-lg"
-          >
-            入る →
-          </button>
-        </form>
-        <div className="mt-8 text-center">
-          <Link
-            to="/"
-            className="text-sm font-medium text-gray-400 underline-offset-4 hover:underline"
-          >
-            注文画面に戻る
-          </Link>
-        </div>
-      </div>
-    </div>
+    <span className={`rounded px-2 py-0.5 text-sm font-bold ${cls}`}>
+      {option.summaryLabel ?? option.choiceLabel}
+    </span>
   )
 }
 
@@ -104,87 +73,94 @@ function StaffBoard() {
   }
 
   return (
-    <div className="app-bg min-h-full">
-      <header className="bg-gradient-to-br from-gray-800 to-gray-900 px-5 py-5 text-white shadow-md">
-        <div className="mx-auto flex max-w-2xl items-center justify-between">
-          <div>
-            <h1 className="text-xl font-black">厨房ボード</h1>
-            <p className="text-xs text-white/70">
-              進行中の注文 {orders.length} 件
+    <div className="min-h-dvh bg-surface">
+      <header className="sticky top-0 z-30 border-b border-ink-line bg-white">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
+          <div className="flex items-baseline gap-3">
+            <h1 className="text-base font-bold">厨房ボード</h1>
+            <p className="text-sm text-ink-sub">
+              進行中 <span className="font-bold tabular-nums text-ink">{orders.length}</span> 件
             </p>
           </div>
           <Link
             to="/"
-            className="rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium text-white/90"
+            className="flex h-11 items-center text-sm text-ink-sub underline underline-offset-4"
           >
             注文画面へ
           </Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl p-4">
-
+      <main className="mx-auto max-w-5xl p-4">
         {orders.length === 0 ? (
-          <div className="py-20 text-center">
-            <p className="text-gray-400">進行中の注文はありません</p>
-          </div>
+          <p className="py-24 text-center text-sm text-ink-sub">
+            進行中の注文はありません
+          </p>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {orders.map((o) => (
-              <div
+              <article
                 key={o.id}
-                className="animate-slide-up rounded-3xl bg-white p-4 shadow-card ring-1 ring-black/5"
+                className="flex flex-col rounded-lg border border-ink-line bg-white p-4"
               >
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-xs text-gray-400">No.</span>
-                    <span className="text-4xl font-black text-brand">
+                <div className="flex items-center justify-between">
+                  <p className="flex items-baseline gap-1">
+                    <span className="text-xs text-ink-sub">No.</span>
+                    <span className="text-[32px] font-bold leading-none tabular-nums">
                       {o.orderNumber}
                     </span>
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs tabular-nums text-ink-sub">
+                      {new Date(o.createdAt).toLocaleTimeString('ja-JP', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                    <StatusBadge status={o.status} />
                   </div>
-                  <StatusBadge status={o.status} />
                 </div>
 
-                <ul className="mb-3 space-y-1 rounded-2xl bg-gray-50 p-3 text-sm text-gray-700">
-                  {o.items.map((i) => (
-                    <li key={i.name} className="flex justify-between">
-                      <span className="font-medium">{i.name}</span>
-                      <span className="font-bold text-gray-500">
-                        × {i.quantity}
-                      </span>
-                    </li>
-                  ))}
+                <ul className="mt-3 flex-1 border-t border-ink-line">
+                  {o.items.map((i) => {
+                    const changed = changedOptions(i)
+                    return (
+                      <li key={itemKey(i)} className="border-b border-ink-line py-2.5">
+                        <div className="flex justify-between gap-2 text-base">
+                          <span className="font-bold">{i.name}</span>
+                          <span className="font-bold tabular-nums">× {i.quantity}</span>
+                        </div>
+                        {changed.length > 0 && (
+                          <div className="mt-1.5 flex flex-wrap gap-1.5">
+                            {changed.map((op) => (
+                              <OptionChip key={op.groupId} option={op} />
+                            ))}
+                          </div>
+                        )}
+                      </li>
+                    )
+                  })}
                 </ul>
 
-                <div className="mb-3 flex justify-between text-sm">
-                  <span className="text-gray-400">
-                    {new Date(o.createdAt).toLocaleTimeString('ja-JP', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </span>
-                  <span className="font-extrabold text-gray-800">
-                    ¥{o.total.toLocaleString()}
-                  </span>
-                </div>
-
-                <div className="flex gap-2">
+                <div className="mt-3 flex gap-2">
                   {o.status === 'paid' && (
                     <button
+                      type="button"
                       onClick={() => setStatus(o.id, 'preparing')}
-                      className="btn-press flex-1 rounded-full border-2 border-amber-300 bg-amber-50 py-2.5 font-bold text-amber-700"
+                      className="h-12 flex-1 rounded-lg border border-ink font-bold"
                     >
                       調理開始
                     </button>
                   )}
                   <button
+                    type="button"
                     onClick={() => setStatus(o.id, 'completed')}
-                    className="btn-press flex-1 rounded-full bg-green-600 py-2.5 font-bold text-white shadow"
+                    className="h-12 flex-1 rounded-lg bg-ink font-bold text-white"
                   >
                     調理完了
                   </button>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         )}
