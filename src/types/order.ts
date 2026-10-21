@@ -10,6 +10,7 @@ export interface SelectedOption {
   groupLabel: string
   choiceId: string
   choiceLabel: string
+  summaryLabel: string // カート・厨房での表示名（例: 大盛り / 福神漬けなし）
   priceDelta: number
   isDefault: boolean // 初期値のままなら true（厨房では表示しない）
 }

@@ -79,8 +79,11 @@ describe('旧データ（選択肢なしの注文）', () => {
 })
 
 describe('optionSummary', () => {
-  it('選んだ内容を「・」でつなぐ', () => {
+  it('選んだ内容を「・」でつなぐ（福神漬けは「福神漬けあり／なし」と書く）', () => {
     const line = buildOrderItem(curry, { size: 'large', fukujinzuke: 'without' }, 1)
-    expect(optionSummary(line)).toBe('大盛り・つけない')
+    expect(optionSummary(line)).toBe('大盛り・福神漬けなし')
+    expect(optionSummary(buildOrderItem(curry, defaultSelection(curry), 1))).toBe(
+      '普通・福神漬けあり',
+    )
   })
 })

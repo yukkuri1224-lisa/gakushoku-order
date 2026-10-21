@@ -23,6 +23,7 @@ function selectedOptions(item: MenuItem, sel: Selection): SelectedOption[] {
       groupLabel: g.label,
       choiceId: choice.id,
       choiceLabel: choice.label,
+      summaryLabel: choice.summaryLabel ?? choice.label,
       priceDelta: choice.priceDelta,
       isDefault: choice.id === g.defaultChoiceId,
     }
@@ -67,7 +68,7 @@ export function changedOptions(i: OrderItem): SelectedOption[] {
   return (i.options ?? []).filter((o) => !o.isDefault)
 }
 
-/** 選んだ内容を「大盛り・つけない」のように1行にする */
+/** 選んだ内容を「大盛り・福神漬けなし」のように1行にする */
 export function optionSummary(i: OrderItem): string {
-  return (i.options ?? []).map((o) => o.choiceLabel).join('・')
+  return (i.options ?? []).map((o) => o.summaryLabel ?? o.choiceLabel).join('・')
 }

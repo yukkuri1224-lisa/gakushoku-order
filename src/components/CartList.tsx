@@ -1,5 +1,9 @@
+import { MENU } from '@/data/menu'
+import { itemKey, optionSummary } from '@/lib/menuOptions'
+import { QuantityStepper } from '@/components/QuantityStepper'
 import type { OrderItem } from '@/types/order'
 
+// 注文確認画面のカートの行一覧。数量を 0 にするか「削除」で行を消す。
 export function CartList({
   items,
   onInc,
@@ -7,61 +11,58 @@ export function CartList({
   onRemove,
 }: {
   items: OrderItem[]
-  onInc: (name: string) => void
-  onDec: (name: string) => void
-  onRemove: (name: string) => void
+  onInc: (key: string) => void
+  onDec: (key: string) => void
+  onRemove: (key: string) => void
 }) {
-  if (items.length === 0) {
-    return (
-      <p className="py-10 text-center text-gray-400">カートは空です 🛒</p>
-    )
-  }
   return (
-    <ul className="space-y-2">
-      {items.map((i) => (
-        <li
-          key={i.name}
-          className="flex items-center justify-between gap-2 rounded-2xl bg-gray-50 p-3"
-        >
-          <div className="min-w-0">
-            <p className="truncate font-bold text-gray-800">{i.name}</p>
-            <p className="text-sm text-gray-500">
-              ¥{i.price.toLocaleString()} ×{' '}
-              <span className="font-semibold text-gray-700">{i.quantity}</span>{' '}
-              ={' '}
-              <span className="font-bold text-gray-900">
-                ¥{(i.price * i.quantity).toLocaleString()}
-              </span>
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-1.5">
-            <button
-              onClick={() => onDec(i.name)}
-              aria-label="減らす"
-              className="btn-press flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg leading-none text-gray-600 shadow ring-1 ring-black/5"
-            >
-              −
-            </button>
-            <span className="w-6 text-center font-extrabold text-gray-800">
-              {i.quantity}
+    <ul className="border-t border-ink-line">
+      {items.map((i) => {
+        const key = itemKey(i)
+        const image = MENU.find(
+          (m) => m.id === i.menuItemId || m.name === i.name,
+        )?.image
+        const summary = optionSummary(i)
+        return (
+          <li key={key} className="flex gap-3 border-b border-ink-line py-4">
+            <span className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-surface">
+              {image && (
+                <img src={image} alt="" className="h-full w-full object-cover" />
+              )}
             </span>
-            <button
-              onClick={() => onInc(i.name)}
-              aria-label="増やす"
-              className="btn-press flex h-8 w-8 items-center justify-center rounded-full bg-brand text-lg leading-none text-white shadow"
-            >
-              ＋
-            </button>
-            <button
-              onClick={() => onRemove(i.name)}
-              aria-label="削除"
-              className="ml-1 text-gray-300 transition hover:text-red-500"
-            >
-              ✕
-            </button>
-          </div>
-        </li>
-      ))}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-bold">{i.name}</p>
+                <p className="shrink-0 font-bold tabular-nums">
+                  ¥{(i.price * i.quantity).toLocaleString()}
+                </p>
+              </div>
+              {summary && (
+                <p className="mt-0.5 text-[13px] text-ink-sub">{summary}</p>
+              )}
+              <p className="mt-0.5 text-[13px] tabular-nums text-ink-faint">
+                1点 ¥{i.price.toLocaleString()}
+              </p>
+              <div className="mt-2 flex items-center justify-between">
+                <QuantityStepper
+                  value={i.quantity}
+                  min={0}
+                  onChange={(next) =>
+                    next > i.quantity ? onInc(key) : onDec(key)
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() => onRemove(key)}
+                  className="h-11 px-2 text-sm text-ink-sub underline underline-offset-4"
+                >
+                  削除
+                </button>
+              </div>
+            </div>
+          </li>
+        )
+      })}
     </ul>
   )
 }

@@ -10,6 +10,7 @@ export interface OptionChoice {
   id: string
   label: string
   priceDelta: number // 基本価格への加算（円）
+  summaryLabel?: string // カート・厨房での表示名（省略時は label）。例: 福神漬けなし
 }
 
 export interface OptionGroup {
@@ -47,8 +48,8 @@ const FUKUJINZUKE: OptionGroup = {
   required: false,
   defaultChoiceId: 'with',
   choices: [
-    { id: 'with', label: 'つける', priceDelta: 0 },
-    { id: 'without', label: 'つけない', priceDelta: 0 },
+    { id: 'with', label: 'つける', priceDelta: 0, summaryLabel: '福神漬けあり' },
+    { id: 'without', label: 'つけない', priceDelta: 0, summaryLabel: '福神漬けなし' },
   ],
 }
 
