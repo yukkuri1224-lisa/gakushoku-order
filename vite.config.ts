@@ -15,7 +15,7 @@ export default defineConfig({
         name: '学食モバイルオーダー',
         short_name: '学食オーダー',
         description: '学食のモバイルオーダー（デモ）',
-        theme_color: '#ff7a00',
+        theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',

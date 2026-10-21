@@ -1,50 +1,42 @@
 /** @type {import('tailwindcss').Config} */
+// 色はここに定義したものだけを使う（設計書 3章「見た目のルール」）。
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        // PayPay 風の赤系アクセント / 学食オレンジ
-        paypay: '#ff0033',
-        brand: {
-          DEFAULT: '#ff7a00',
-          dark: '#e96b00',
-          light: '#ff9a3c',
+        ink: {
+          DEFAULT: '#1C1917', // 文字・メインボタン（墨）
+          sub: '#57534E', // 補助文字
+          faint: '#A8A29E', // 薄い文字
+          line: '#E7E5E4', // 区切り線
         },
+        surface: '#F5F5F4', // 薄い灰色の地
+        accent: {
+          bg: '#FDF3D7', // 小さなラベルの地（からし色）
+          fg: '#7A5300', // 小さなラベルの文字
+        },
+        danger: '#B42318', // 注意・エラー
+        success: '#15803D', // 完了
+        paypay: '#FF0033', // PayPay ボタン（例外）
       },
       boxShadow: {
-        card: '0 6px 20px -8px rgba(234, 88, 12, 0.25)',
-        float: '0 12px 32px -8px rgba(0, 0, 0, 0.25)',
+        // 影は下から開くシートと最下部の固定バーだけに使う
+        sheet: '0 -8px 24px -12px rgba(28, 25, 23, 0.18)',
       },
       keyframes: {
         'fade-in': {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
-        'slide-up': {
-          '0%': { transform: 'translateY(18px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
         'sheet-up': {
           '0%': { transform: 'translateY(100%)' },
           '100%': { transform: 'translateY(0)' },
         },
-        'pop-in': {
-          '0%': { transform: 'scale(0.8)', opacity: '0' },
-          '60%': { transform: 'scale(1.05)', opacity: '1' },
-          '100%': { transform: 'scale(1)' },
-        },
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-6px)' },
-        },
       },
       animation: {
-        'fade-in': 'fade-in 0.4s ease-out both',
-        'slide-up': 'slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both',
-        'sheet-up': 'sheet-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) both',
-        'pop-in': 'pop-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
-        float: 'float 3s ease-in-out infinite',
+        'fade-in': 'fade-in 0.2s ease-out both',
+        'sheet-up': 'sheet-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) both',
       },
     },
   },
