@@ -1,9 +1,17 @@
+import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useToast } from '@/store/toast'
 import { CheckIcon } from '@/components/icons'
 
 // App 直下に常設。useToast().show() で表示する。
+// 前の画面のお知らせを次の画面に持ち越さないよう、画面が切り替わったら消す。
 export function Toast() {
   const message = useToast((s) => s.message)
+  const hide = useToast((s) => s.hide)
+  const { pathname } = useLocation()
+  useEffect(() => {
+    hide()
+  }, [pathname, hide])
   return (
     <div
       role="status"
