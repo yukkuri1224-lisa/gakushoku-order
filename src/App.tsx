@@ -6,11 +6,12 @@ import { OrderStatusPage } from '@/pages/OrderStatusPage'
 import { StaffPage } from '@/pages/StaffPage'
 import { RequireGate } from '@/components/RequireGate'
 import { PaymentModalHost } from '@/components/PaymentModalHost'
+import { Toast } from '@/components/Toast'
 import { GATE_KEY } from '@/lib/gate'
 
 export default function App() {
   return (
-    <div className="min-h-full bg-white text-gray-900">
+    <div className="min-h-full bg-white text-ink">
       <Routes>
         <Route path="/" element={<GatePage />} />
         <Route
@@ -36,6 +37,7 @@ export default function App() {
 
       {/* PayPay 風モック決済モーダルを常設 */}
       <PaymentModalHost />
+      <Toast />
     </div>
   )
 }
