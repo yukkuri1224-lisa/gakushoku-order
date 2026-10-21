@@ -71,17 +71,22 @@ export class LocalOrderRepository implements OrderRepository {
   async createOrder(
     draft: OrderDraft,
     paymentMethod: PaymentMethod,
+    orderId?: string,
   ): Promise<{ id: string; orderNumber: number }> {
     const all = this.readAll()
+    const existing = orderId ? all.find((o) => o.id === orderId) : undefined
+    if (existing) return { id: existing.id, orderNumber: existing.orderNumber }
+
     const ckey = COUNTER_PREFIX + todayKey()
     const orderNumber = (parseInt(localStorage.getItem(ckey) ?? '0', 10) || 0) + 1
     localStorage.setItem(ckey, String(orderNumber))
 
     const id =
+      orderId ??
       'local-' +
-      Date.now().toString(36) +
-      '-' +
-      Math.random().toString(36).slice(2, 7)
+        Date.now().toString(36) +
+        '-' +
+        Math.random().toString(36).slice(2, 7)
 
     const order: Order = {
       id,

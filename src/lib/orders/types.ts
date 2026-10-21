@@ -14,10 +14,15 @@ export type OrdersCallback = (orders: Order[]) => void
 export type Unsubscribe = () => void
 
 export interface OrderRepository {
-  /** 決済成功後に注文を作成（status='paid'）。当日通し番号を採番して返す。 */
+  /**
+   * 決済成功後に注文を作成（status='paid'）。当日通し番号を採番して返す。
+   * orderId（PayPay の merchantPaymentId など）を渡すと、それを注文IDにする。
+   * 同じIDの注文が既にあれば、採番も書き込みもせずにその注文を返す（再試行・再読み込み対策）。
+   */
   createOrder(
     draft: OrderDraft,
     paymentMethod: PaymentMethod,
+    orderId?: string,
   ): Promise<{ id: string; orderNumber: number }>
 
   /** 1件の注文を購読（学生の状態画面用）。存在しなければ null を渡す。 */

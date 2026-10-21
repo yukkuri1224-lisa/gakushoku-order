@@ -3,7 +3,6 @@
 // トランザクション加算で採番する。
 import {
   type Firestore,
-  addDoc,
   collection,
   doc,
   onSnapshot,
@@ -32,28 +31,39 @@ export class FirestoreOrderRepository implements OrderRepository {
   async createOrder(
     draft: OrderDraft,
     paymentMethod: PaymentMethod,
+    orderId?: string,
   ): Promise<{ id: string; orderNumber: number }> {
     const counterRef = doc(this.db, 'dailyCounters', todayKey())
+    const orderRef = orderId
+      ? doc(this.db, 'orders', orderId)
+      : doc(collection(this.db, 'orders'))
 
-    // 当日通し番号をトランザクションで安全に採番
+    // 採番と注文の書き込みを1つのトランザクションで行う。
+    // 同じIDの注文が既にあれば（再試行・再読み込み）、それを返して何も書かない。
+    // ※トランザクションでは読み取りをすべて書き込みより先に行う必要がある。
     const orderNumber = await runTransaction(this.db, async (tx) => {
+      const existing = await tx.get(orderRef)
+      if (existing.exists()) {
+        return existing.data().orderNumber as number
+      }
       const snap = await tx.get(counterRef)
       const current = (snap.data()?.count as number | undefined) ?? 0
       const next = current + 1
       tx.set(counterRef, { count: next, date: todayKey() }, { merge: true })
+
+      const data: Omit<Order, 'id'> = {
+        orderNumber: next,
+        items: draft.items,
+        total: draft.total,
+        status: 'paid',
+        paymentMethod,
+        createdAt: Date.now(),
+      }
+      tx.set(orderRef, data)
       return next
     })
 
-    const data: Omit<Order, 'id'> = {
-      orderNumber,
-      items: draft.items,
-      total: draft.total,
-      status: 'paid',
-      paymentMethod,
-      createdAt: Date.now(),
-    }
-    const ref = await addDoc(collection(this.db, 'orders'), data)
-    return { id: ref.id, orderNumber }
+    return { id: orderRef.id, orderNumber }
   }
 
   subscribeOrder(id: string, cb: OrderCallback): Unsubscribe {
