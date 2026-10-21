@@ -4,10 +4,28 @@ export type OrderStatus = 'paid' | 'preparing' | 'completed'
 
 export type PaymentMethod = 'mock' | 'paypay'
 
+/** 注文の1行で選ばれた選択肢（例: サイズ=大盛り） */
+export interface SelectedOption {
+  groupId: string
+  groupLabel: string
+  choiceId: string
+  choiceLabel: string
+  priceDelta: number
+  isDefault: boolean // 初期値のままなら true（厨房では表示しない）
+}
+
+/**
+ * カート・注文の1行。
+ * key / menuItemId / options は選択肢対応後に追加した項目で、
+ * それ以前に保存された注文やカートには無い（itemKey() で name にフォールバック）。
+ */
 export interface OrderItem {
+  key?: string // menuItemId + 選択肢の組み合わせ
+  menuItemId?: string
   name: string
-  price: number
+  price: number // 選択肢込みの単価（円）
   quantity: number
+  options?: SelectedOption[]
 }
 
 /** Firestore / ローカルに保存される注文ドキュメント */
