@@ -24,9 +24,9 @@ export function useOrder(id: string | undefined): {
   return state
 }
 
-/** 進行中（受付済み・調理中）の注文をすべて購読する（「前に◯件」の計算用） */
-export function useActiveOrders(): Order[] {
-  const [orders, setOrders] = useState<Order[]>([])
+/** 進行中（受付済み・調理中）の注文をすべて購読する（「前に◯件」の計算用）。読み込み中は null */
+export function useActiveOrders(): Order[] | null {
+  const [orders, setOrders] = useState<Order[] | null>(null)
   useEffect(() => getOrderRepository().subscribeActiveOrders(setOrders), [])
   return orders
 }

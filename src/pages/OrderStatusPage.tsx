@@ -1,14 +1,14 @@
 import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { itemKey } from '@/lib/menuOptions'
-import { queueAhead } from '@/lib/orderProgress'
 import { useActiveOrders, useCompletionAlert, useOrder } from '@/hooks/useOrders'
 import { AppHeader } from '@/components/AppHeader'
 import { OptionTags } from '@/components/OptionTags'
 import { ReadyOverlay } from '@/components/ReadyOverlay'
 import { Section } from '@/components/Section'
+import { WaitingNote } from '@/components/WaitingNote'
 import { CheckIcon } from '@/components/icons'
-import { DINING_LABEL, type Order, type OrderStatus } from '@/types/order'
+import { DINING_LABEL, type OrderStatus } from '@/types/order'
 
 const STEPS: { status: OrderStatus; label: string }[] = [
   { status: 'paid', label: '受付済み' },
@@ -61,26 +61,6 @@ function ProgressStepper({ status }: { status: OrderStatus }) {
         )
       })}
     </ol>
-  )
-}
-
-/** 待ち状況のひとこと（根拠のない待ち時間は出さず、前の件数で伝える） */
-function WaitingNote({ order, active }: { order: Order; active: Order[] }) {
-  if (order.status === 'preparing') {
-    return <p className="mt-5 text-center text-sm font-bold">ただいまお作りしています</p>
-  }
-  if (order.status !== 'paid') return null
-  const ahead = queueAhead(order, active)
-  return (
-    <p className="mt-5 text-center text-sm font-bold">
-      {ahead > 0 ? (
-        <>
-          あなたの前に <span className="text-lg tabular-nums">{ahead}</span> 件の注文があります
-        </>
-      ) : (
-        'まもなく調理を始めます'
-      )}
-    </p>
   )
 }
 
