@@ -5,7 +5,13 @@ import { changedOptions, itemKey } from '@/lib/menuOptions'
 import { StatusBadge } from '@/components/StatusBadge'
 import { PasscodeScreen } from '@/components/PasscodeScreen'
 import { STAFF_KEY, STAFF_PASSWORD, isGateOpen, openGate } from '@/lib/gate'
-import type { Order, OrderStatus, SelectedOption } from '@/types/order'
+import {
+  DINING_SHORT,
+  type DiningOption,
+  type Order,
+  type OrderStatus,
+  type SelectedOption,
+} from '@/types/order'
 import { beep } from '@/lib/sound'
 
 export function StaffPage() {
@@ -43,6 +49,22 @@ function OptionChip({ option }: { option: SelectedOption }) {
   return (
     <span className={`rounded px-2 py-0.5 text-sm font-bold ${cls}`}>
       {option.summaryLabel ?? option.choiceLabel}
+    </span>
+  )
+}
+
+/**
+ * ご利用方法のバッジ。容器が変わる「持ち帰り」を反転色で目立たせる。
+ * 利用方法の選択を入れる前の注文（diningOption なし）には出さない。
+ */
+function DiningBadge({ option }: { option: DiningOption }) {
+  const cls =
+    option === 'takeout'
+      ? 'bg-ink text-white'
+      : 'border border-ink-line text-ink'
+  return (
+    <span className={`rounded px-2 py-1 text-sm font-bold ${cls}`}>
+      {DINING_SHORT[option]}
     </span>
   )
 }
@@ -104,11 +126,14 @@ function StaffBoard() {
                 className="flex flex-col rounded-lg border border-ink-line bg-white p-4"
               >
                 <div className="flex items-center justify-between">
-                  <p className="flex items-baseline gap-1">
-                    <span className="text-xs text-ink-sub">No.</span>
-                    <span className="text-[32px] font-bold leading-none tabular-nums">
-                      {o.orderNumber}
+                  <p className="flex items-center gap-2">
+                    <span className="flex items-baseline gap-1">
+                      <span className="text-xs text-ink-sub">No.</span>
+                      <span className="text-[32px] font-bold leading-none tabular-nums">
+                        {o.orderNumber}
+                      </span>
                     </span>
+                    {o.diningOption && <DiningBadge option={o.diningOption} />}
                   </p>
                   <div className="flex items-center gap-2">
                     <span className="text-xs tabular-nums text-ink-sub">

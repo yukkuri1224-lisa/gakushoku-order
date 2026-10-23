@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { AppHeader } from '@/components/AppHeader'
+import { ActiveOrders } from '@/components/ActiveOrders'
 import { ChevronRightIcon, DiningIcon } from '@/components/icons'
 import { useDiningStore } from '@/store/dining'
 import { greeting } from '@/lib/greeting'
@@ -32,6 +33,7 @@ export function DiningPage() {
     <div className="min-h-dvh bg-white pb-10">
       <AppHeader title="LiSA校食堂" />
       <main className="mx-auto max-w-md px-4">
+        <ActiveOrders className="pt-4" />
         <p className="pt-8 text-sm font-bold text-ink-sub">{greeting()}</p>
         <h1 className="text-keep mt-1 text-2xl font-bold">
           ご利用方法を選んでください

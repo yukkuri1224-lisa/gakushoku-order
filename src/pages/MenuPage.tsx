@@ -5,6 +5,7 @@ import { AppHeader } from '@/components/AppHeader'
 import { PickupBar } from '@/components/PickupBar'
 import { MenuRow } from '@/components/MenuRow'
 import { ItemSheet } from '@/components/ItemSheet'
+import { ActiveOrders } from '@/components/ActiveOrders'
 import { ChevronRightIcon } from '@/components/icons'
 import { cartCount, cartTotal, useCartStore } from '@/store/cart'
 import { useToast } from '@/store/toast'
@@ -42,6 +43,7 @@ export function MenuPage() {
       <PickupBar />
 
       <main className="mx-auto max-w-md px-4">
+        <ActiveOrders className="pt-4" />
         <h2 className="pb-1 pt-5 text-xl font-bold">メニュー</h2>
         {MENU_CATEGORIES.map((cat) => {
           const list = MENU.filter((m) => m.category === cat)
