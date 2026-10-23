@@ -5,6 +5,7 @@ import { AppHeader } from '@/components/AppHeader'
 import { PickupBar } from '@/components/PickupBar'
 import { MenuRow } from '@/components/MenuRow'
 import { ItemSheet } from '@/components/ItemSheet'
+import { ChevronRightIcon } from '@/components/icons'
 import { cartCount, cartTotal, useCartStore } from '@/store/cart'
 import { useToast } from '@/store/toast'
 import type { OrderItem } from '@/types/order'
@@ -68,16 +69,23 @@ export function MenuPage() {
           <div className="mx-auto max-w-md">
             <Link
               to="/checkout"
+              aria-label={`注文へ進む（${count}点・合計 ¥${total.toLocaleString()}）`}
               className="flex h-[52px] w-full items-center justify-between rounded-lg bg-ink px-4 text-white active:opacity-90"
             >
-              <span className="flex items-center gap-2 font-bold">
-                <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-white px-1.5 text-xs tabular-nums text-ink">
+              <span className="flex items-center gap-3">
+                <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-white px-1.5 text-xs font-bold tabular-nums text-ink">
                   {count}
                 </span>
-                カートを見る
+                <span className="text-left leading-tight">
+                  <span className="block text-[11px] text-white/70">合計</span>
+                  <span className="block font-bold tabular-nums">
+                    ¥{total.toLocaleString()}
+                  </span>
+                </span>
               </span>
-              <span className="font-bold tabular-nums">
-                ¥{total.toLocaleString()}
+              <span className="flex items-center gap-0.5 font-bold">
+                注文へ進む
+                <ChevronRightIcon className="h-5 w-5" />
               </span>
             </Link>
           </div>

@@ -6,8 +6,10 @@ import {
   defaultSelection,
   itemKey,
   optionSummary,
+  priceLabel,
   unitPrice,
 } from './menuOptions'
+import type { MenuItem } from '@/data/menu'
 
 const ramen = MENU.find((m) => m.id === 'ramen')!
 const curry = MENU.find((m) => m.id === 'curry')!
@@ -85,5 +87,38 @@ describe('optionSummary', () => {
     expect(optionSummary(buildOrderItem(curry, defaultSelection(curry), 1))).toBe(
       '普通・福神漬けあり',
     )
+  })
+})
+
+describe('priceLabel', () => {
+  it('有料の選択肢（大盛り）がある商品は「〜」を付ける', () => {
+    expect(priceLabel(ramen)).toBe('¥430〜')
+  })
+
+  it('選択肢がない商品はそのままの価格', () => {
+    const tea: MenuItem = { id: 'tea', name: 'お茶', price: 1200, category: 'ドリンク' }
+    expect(priceLabel(tea)).toBe('¥1,200')
+  })
+
+  it('選択肢がすべて無料なら「〜」を付けない', () => {
+    const rice: MenuItem = {
+      id: 'rice',
+      name: 'ごはん',
+      price: 100,
+      category: 'ご飯もの',
+      optionGroups: [
+        {
+          id: 'g',
+          label: 'のり',
+          required: false,
+          defaultChoiceId: 'a',
+          choices: [
+            { id: 'a', label: 'あり', priceDelta: 0 },
+            { id: 'b', label: 'なし', priceDelta: 0 },
+          ],
+        },
+      ],
+    }
+    expect(priceLabel(rice)).toBe('¥100')
   })
 })

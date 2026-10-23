@@ -49,7 +49,7 @@ export function DiningPage() {
                 type="button"
                 onClick={() => choose(option)}
                 className={`flex w-full items-center gap-4 rounded-lg px-4 py-5 text-left active:bg-surface ${
-                  selected ? 'border-2 border-ink' : 'border border-ink-line'
+                  selected ? 'border border-ink ring-1 ring-ink' : 'border border-ink-line'
                 }`}
               >
                 <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-surface text-ink">

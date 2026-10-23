@@ -1,4 +1,5 @@
 import type { MenuItem } from '@/data/menu'
+import { priceLabel } from '@/lib/menuOptions'
 
 // メニュー一覧の1行。行全体が1つのボタン（タップで商品シートを開く）。
 export function MenuRow({
@@ -39,7 +40,7 @@ export function MenuRow({
           </span>
         )}
         <span className="mt-2 block text-base font-bold tabular-nums text-ink">
-          ¥{item.price.toLocaleString()}
+          {priceLabel(item)}
         </span>
       </span>
     </button>

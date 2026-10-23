@@ -72,3 +72,11 @@ export function changedOptions(i: OrderItem): SelectedOption[] {
 export function optionSummary(i: OrderItem): string {
   return (i.options ?? []).map((o) => o.summaryLabel ?? o.choiceLabel).join('・')
 }
+
+/** 一覧・商品シートの価格表示。有料の選択肢（大盛りなど）がある商品は「¥430〜」 */
+export function priceLabel(item: MenuItem): string {
+  const hasPaidOption = (item.optionGroups ?? []).some((g) =>
+    g.choices.some((c) => c.priceDelta > 0),
+  )
+  return `¥${item.price.toLocaleString()}${hasPaidOption ? '〜' : ''}`
+}

@@ -3,6 +3,7 @@ import type { MenuItem } from '@/data/menu'
 import {
   buildOrderItem,
   defaultSelection,
+  priceLabel,
   unitPrice,
   type Selection,
 } from '@/lib/menuOptions'
@@ -11,7 +12,8 @@ import { QuantityStepper } from '@/components/QuantityStepper'
 import { CloseIcon } from '@/components/icons'
 import type { OrderItem } from '@/types/order'
 
-// 商品詳細（下から開くシート）。開くたびに選択肢は初期値・数量は 1 から始まる。
+// 商品詳細（下から開くハーフモーダル）。小さなサムネイルの見出し＋2 列の選択カード＋数量で、
+// スクロールせずに 1 画面で選べるようにする。開くたびに選択肢は初期値・数量は 1 から始まる。
 // 親側で item が変わるたびに key を変えて再マウントする想定。
 export function ItemSheet({
   item,
@@ -59,33 +61,36 @@ export function ItemSheet({
         onClick={(e) => e.stopPropagation()}
         className="flex max-h-[92vh] w-full max-w-md animate-sheet-up flex-col overflow-hidden rounded-t-xl bg-white shadow-sheet outline-none"
       >
-        <div className="relative shrink-0">
-          {item.image && (
-            <img
-              src={item.image}
-              alt=""
-              className="aspect-[4/3] w-full bg-surface object-cover"
-            />
-          )}
+        <div className="flex justify-center pt-2" aria-hidden="true">
+          <span className="h-1 w-10 rounded-full bg-ink-line" />
+        </div>
+
+        <div className="flex shrink-0 items-start gap-3 border-b border-ink-line px-4 pb-4 pt-2">
+          <span className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-surface">
+            {item.image && (
+              <img src={item.image} alt="" className="h-full w-full object-cover" />
+            )}
+          </span>
+          <div className="min-w-0 flex-1 pt-1">
+            <h2 className="text-lg font-bold text-ink">{item.name}</h2>
+            {item.description && (
+              <p className="mt-0.5 text-[13px] text-ink-sub">{item.description}</p>
+            )}
+            <p className="mt-1 text-[15px] font-bold tabular-nums">
+              {priceLabel(item)}
+            </p>
+          </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="閉じる"
-            className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-ink"
+            className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink"
           >
             <CloseIcon className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 pb-6 pt-4">
-          <h2 className="text-xl font-bold text-ink">{item.name}</h2>
-          {item.description && (
-            <p className="mt-1 text-[13px] text-ink-sub">{item.description}</p>
-          )}
-          <p className="mt-2 text-base font-bold tabular-nums">
-            ¥{item.price.toLocaleString()}
-          </p>
-
+        <div className="flex-1 overflow-y-auto px-4 pb-5">
           {(item.optionGroups ?? []).map((g) => (
             <OptionGroupField
               key={g.id}
@@ -96,16 +101,19 @@ export function ItemSheet({
               }
             />
           ))}
+          <div className="mt-5 flex items-center justify-between border-t border-ink-line pt-4">
+            <span className="text-[15px] font-bold">数量</span>
+            <QuantityStepper value={quantity} onChange={setQuantity} />
+          </div>
         </div>
 
-        <div className="pb-safe flex shrink-0 items-center gap-3 border-t border-ink-line bg-white px-4 pt-3">
-          <QuantityStepper value={quantity} onChange={setQuantity} />
+        <div className="pb-safe shrink-0 border-t border-ink-line bg-white px-4 pt-3">
           <button
             type="button"
             onClick={() => onAdd(buildOrderItem(item, selection, quantity))}
-            className="h-[52px] flex-1 rounded-lg bg-ink text-base font-bold text-white active:opacity-90"
+            className="h-[52px] w-full rounded-lg bg-ink text-base font-bold text-white active:opacity-90"
           >
-            カートに追加する・
+            カートに入れる・
             <span className="tabular-nums">¥{amount.toLocaleString()}</span>
           </button>
         </div>
