@@ -4,6 +4,9 @@ export type OrderStatus = 'paid' | 'preparing' | 'completed'
 
 export type PaymentMethod = 'mock' | 'paypay'
 
+/** ご利用方法（店内で食べる / お持ち帰り） */
+export type DiningOption = 'eat_in' | 'takeout'
+
 /** 注文の1行で選ばれた選択肢（例: サイズ=大盛り） */
 export interface SelectedOption {
   groupId: string
@@ -39,12 +42,14 @@ export interface Order {
   paymentMethod: PaymentMethod
   createdAt: number // epoch ミリ秒
   completedAt?: number
+  diningOption?: DiningOption // 利用方法の選択を入れる前の注文には無い
 }
 
 /** 決済前のカート確定情報（注文作成の元データ） */
 export interface OrderDraft {
   items: OrderItem[]
   total: number
+  diningOption?: DiningOption
 }
 
 // status -> 日本語ラベル（画面表示で共通利用）
@@ -52,4 +57,15 @@ export const STATUS_LABEL: Record<OrderStatus, string> = {
   paid: '受付済み',
   preparing: '調理中',
   completed: '完了',
+}
+
+// ご利用方法 -> 日本語ラベル（学生向け / 厨房向けの短い表記）
+export const DINING_LABEL: Record<DiningOption, string> = {
+  eat_in: '店内で食べる',
+  takeout: 'お持ち帰り',
+}
+
+export const DINING_SHORT: Record<DiningOption, string> = {
+  eat_in: '店内',
+  takeout: '持ち帰り',
 }

@@ -18,6 +18,7 @@ import {
   type Unsubscribe,
   todayKey,
 } from './types'
+import { buildOrderData } from './buildOrderData'
 
 const ORDERS_KEY = 'gakushoku.orders'
 const COUNTER_PREFIX = 'gakushoku.counter.'
@@ -90,12 +91,7 @@ export class LocalOrderRepository implements OrderRepository {
 
     const order: Order = {
       id,
-      orderNumber,
-      items: draft.items,
-      total: draft.total,
-      status: 'paid',
-      paymentMethod,
-      createdAt: Date.now(),
+      ...buildOrderData(draft, paymentMethod, orderNumber, Date.now()),
     }
     all.push(order)
     this.writeAll(all)

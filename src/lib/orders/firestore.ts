@@ -24,6 +24,7 @@ import {
   type Unsubscribe,
   todayKey,
 } from './types'
+import { buildOrderData } from './buildOrderData'
 
 export class FirestoreOrderRepository implements OrderRepository {
   constructor(private db: Firestore) {}
@@ -51,15 +52,7 @@ export class FirestoreOrderRepository implements OrderRepository {
       const next = current + 1
       tx.set(counterRef, { count: next, date: todayKey() }, { merge: true })
 
-      const data: Omit<Order, 'id'> = {
-        orderNumber: next,
-        items: draft.items,
-        total: draft.total,
-        status: 'paid',
-        paymentMethod,
-        createdAt: Date.now(),
-      }
-      tx.set(orderRef, data)
+      tx.set(orderRef, buildOrderData(draft, paymentMethod, next, Date.now()))
       return next
     })
 
