@@ -88,3 +88,44 @@ export function PlusIcon({ className }: IconProps) {
     </Icon>
   )
 }
+
+export function ChevronRightIcon({ className }: IconProps) {
+  return (
+    <Icon className={className}>
+      <path d="M9 5l7 7-7 7" />
+    </Icon>
+  )
+}
+
+/** 店内で食べる（湯気の立つどんぶり） */
+export function EatInIcon({ className }: IconProps) {
+  return (
+    <Icon className={className}>
+      <path d="M3.5 12h17a8.5 7 0 0 1-17 0z" />
+      <path d="M9.5 21h5" />
+      <path d="M9 8.5c-.8-1 .8-1.8 0-3M12 8.5c-.8-1 .8-1.8 0-3M15 8.5c-.8-1 .8-1.8 0-3" />
+    </Icon>
+  )
+}
+
+/** お持ち帰り（手提げ袋） */
+export function TakeoutIcon({ className }: IconProps) {
+  return (
+    <Icon className={className}>
+      <path d="M5.5 8.5h13l-1 11.6a1.5 1.5 0 0 1-1.5 1.4H8a1.5 1.5 0 0 1-1.5-1.4L5.5 8.5z" />
+      <path d="M9 8.5V7a3 3 0 0 1 6 0v1.5" />
+    </Icon>
+  )
+}
+
+/** ご利用方法に対応するアイコン */
+export function DiningIcon({
+  option,
+  className,
+}: IconProps & { option: 'eat_in' | 'takeout' }) {
+  return option === 'eat_in' ? (
+    <EatInIcon className={className} />
+  ) : (
+    <TakeoutIcon className={className} />
+  )
+}

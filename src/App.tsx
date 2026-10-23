@@ -1,10 +1,12 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { GatePage } from '@/pages/GatePage'
+import { DiningPage } from '@/pages/DiningPage'
 import { MenuPage } from '@/pages/MenuPage'
 import { CheckoutPage } from '@/pages/CheckoutPage'
 import { OrderStatusPage } from '@/pages/OrderStatusPage'
 import { StaffPage } from '@/pages/StaffPage'
 import { RequireGate } from '@/components/RequireGate'
+import { RequireDining } from '@/components/RequireDining'
 import { PaymentModalHost } from '@/components/PaymentModalHost'
 import { Toast } from '@/components/Toast'
 import { GATE_KEY } from '@/lib/gate'
@@ -15,10 +17,20 @@ export default function App() {
       <Routes>
         <Route path="/" element={<GatePage />} />
         <Route
+          path="/start"
+          element={
+            <RequireGate flag={GATE_KEY} redirectTo="/">
+              <DiningPage />
+            </RequireGate>
+          }
+        />
+        <Route
           path="/menu"
           element={
             <RequireGate flag={GATE_KEY} redirectTo="/">
-              <MenuPage />
+              <RequireDining>
+                <MenuPage />
+              </RequireDining>
             </RequireGate>
           }
         />
