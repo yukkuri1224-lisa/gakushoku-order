@@ -1,6 +1,7 @@
-import { useId, type KeyboardEvent } from 'react'
+import { useId } from 'react'
 import type { OptionGroup } from '@/data/menu'
 import { CheckIcon } from '@/components/icons'
+import { moveRadioSelection } from '@/lib/radioKeys'
 
 // 選択肢グループ（1つ選ぶ）。2 列のカードで並べ、radiogroup / radio として読み上げられる。
 // 矢印キーで選択を移動できる（選択中のカードだけが Tab で止まる）。
@@ -14,24 +15,6 @@ export function OptionGroupField({
   onChange: (choiceId: string) => void
 }) {
   const labelId = useId()
-
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    const step =
-      e.key === 'ArrowRight' || e.key === 'ArrowDown'
-        ? 1
-        : e.key === 'ArrowLeft' || e.key === 'ArrowUp'
-          ? -1
-          : 0
-    if (step === 0) return
-    e.preventDefault()
-    const n = group.choices.length
-    const i = group.choices.findIndex((c) => c.id === value)
-    const next = (i + step + n) % n
-    onChange(group.choices[next].id)
-    e.currentTarget
-      .querySelectorAll<HTMLButtonElement>('[role="radio"]')
-      [next]?.focus()
-  }
 
   return (
     <section className="mt-5">
@@ -48,7 +31,14 @@ export function OptionGroupField({
       <div
         role="radiogroup"
         aria-labelledby={labelId}
-        onKeyDown={onKeyDown}
+        onKeyDown={(e) =>
+          moveRadioSelection(
+            e,
+            group.choices.map((c) => c.id),
+            value,
+            onChange,
+          )
+        }
         className="mt-2 grid grid-cols-2 gap-2"
       >
         {group.choices.map((c) => {

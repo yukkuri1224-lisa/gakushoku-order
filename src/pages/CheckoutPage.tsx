@@ -2,8 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AppHeader } from '@/components/AppHeader'
 import { CartList } from '@/components/CartList'
-import { CheckIcon, ClockIcon, StoreIcon } from '@/components/icons'
-import { cartTotal, useCartStore } from '@/store/cart'
+import { DiningChoice } from '@/components/DiningChoice'
+import { ProcessingScreen } from '@/components/ProcessingScreen'
+import { Section } from '@/components/Section'
+import { CheckIcon, StoreIcon } from '@/components/icons'
+import { cartCount, cartTotal, useCartStore } from '@/store/cart'
+import { useDiningStore } from '@/store/dining'
 import {
   clearPendingPayPayId,
   confirmPayPayPayment,
@@ -11,8 +15,9 @@ import {
   getPendingPayPayId,
 } from '@/lib/payment'
 import { getOrderRepository } from '@/lib/orders'
+import { rememberOrder } from '@/lib/myOrders'
 import { toUserMessage } from '@/lib/errors'
-import type { PaymentMethod } from '@/types/order'
+import { DINING_LABEL, type PaymentMethod } from '@/types/order'
 
 /** 支払いは済んだが注文の登録に失敗した状態（同じIDで登録だけやり直せる） */
 interface PaidButFailed {
@@ -25,6 +30,7 @@ function newOrderId(): string {
   return 'mock-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
 }
 
+// 注文内容の確認。受け取り場所・ご利用方法・お支払い方法・ご注文内容を確かめてから支払う。
 export function CheckoutPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -32,17 +38,21 @@ export function CheckoutPage() {
   const increment = useCartStore((s) => s.increment)
   const decrement = useCartStore((s) => s.decrement)
   const remove = useCartStore((s) => s.remove)
+  const dining = useDiningStore((s) => s.option)
+  const setDining = useDiningStore((s) => s.setOption)
 
   const [paying, setPaying] = useState(false)
   // PayPay から戻った直後（?pp=return）は最初から確認画面を出す
   const [confirming, setConfirming] = useState(
     () => new URLSearchParams(window.location.search).get('pp') === 'return',
   )
+  const [registering, setRegistering] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [failed, setFailed] = useState<PaidButFailed | null>(null)
   const [retrying, setRetrying] = useState(false)
 
   const total = cartTotal(items)
+  const count = cartCount(items)
 
   /**
    * 支払い済みの注文を登録して注文番号画面へ。
@@ -55,17 +65,25 @@ export function CheckoutPage() {
       navigate(`/order/${orderId}`, { replace: true })
       return
     }
+    setRegistering(true)
     try {
       const { id } = await getOrderRepository().createOrder(
-        { items: current, total: cartTotal(current) },
+        {
+          items: current,
+          total: cartTotal(current),
+          diningOption: useDiningStore.getState().option ?? undefined,
+        },
         method,
         orderId,
       )
+      rememberOrder(id, Date.now())
       if (method === 'paypay') clearPendingPayPayId()
       useCartStore.getState().clear()
       navigate(`/order/${id}`, { replace: true })
     } catch (e) {
       setFailed({ orderId, method, message: toUserMessage(e) })
+    } finally {
+      setRegistering(false)
     }
   }
 
@@ -88,6 +106,7 @@ export function CheckoutPage() {
           setError('PayPayの支払いが確認できませんでした。もう一度お試しください。')
           return
         }
+        setConfirming(false)
         await registerOrder(mpid, 'paypay')
       } catch (e) {
         if (!cancelled) setError(toUserMessage(e))
@@ -103,12 +122,16 @@ export function CheckoutPage() {
   }, [])
 
   const handlePay = async () => {
-    if (items.length === 0 || paying) return
+    if (items.length === 0 || paying || !dining) return
     setError(null)
     setPaying(true)
     try {
       // 決済（mock=モーダル / paypay=リダイレクト）。VITE_PAYMENT_MODE で切替
-      const result = await getPaymentProvider().pay(total, { items, total })
+      const result = await getPaymentProvider().pay(total, {
+        items,
+        total,
+        diningOption: dining,
+      })
       // ※ paypay はここでリダイレクトするため以降は実行されない（戻った後に useEffect で処理）
       if (!result.success) {
         setPaying(false)
@@ -128,19 +151,8 @@ export function CheckoutPage() {
     setRetrying(false)
   }
 
-  // PayPay 戻り確認中
-  if (confirming) {
-    return (
-      <div className="flex min-h-dvh flex-col items-center justify-center p-6 text-center">
-        <div
-          className="mb-5 h-10 w-10 animate-spin rounded-full border-[3px] border-ink-line border-t-ink"
-          aria-hidden="true"
-        />
-        <p className="text-base font-bold">支払いを確認しています</p>
-        <p className="mt-1 text-sm text-ink-sub">画面を閉じずにお待ちください</p>
-      </div>
-    )
-  }
+  if (confirming) return <ProcessingScreen title="支払いを確認しています" />
+  if (registering && !failed) return <ProcessingScreen title="注文を確定しています…" />
 
   // 支払い済み・注文登録に失敗
   if (failed) {
@@ -180,7 +192,7 @@ export function CheckoutPage() {
   if (items.length === 0) {
     return (
       <div className="flex min-h-dvh flex-col">
-        <AppHeader title="注文の確認" back="/menu" />
+        <AppHeader title="注文内容の確認" back="/menu" />
         <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-4 text-center">
           <p className="text-base font-bold">カートは空です</p>
           {error && <p className="mt-3 text-sm text-danger">{error}</p>}
@@ -196,77 +208,109 @@ export function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-white pb-32">
-      <AppHeader title="注文の確認" back="/menu" />
+    <div className="min-h-dvh bg-white pb-44">
+      <AppHeader title="注文内容の確認" back="/menu" />
 
-      <main className="mx-auto max-w-md px-4">
-        <section className="pt-5">
-          <h2 className="pb-2 text-[15px] font-bold">受け取り</h2>
-          <div className="rounded-lg border border-ink-line">
-            <p className="flex items-center gap-3 border-b border-ink-line px-4 py-3 text-[15px]">
-              <StoreIcon className="h-5 w-5 text-ink-sub" />
-              LiSA校食堂
-            </p>
-            <p className="flex items-center gap-3 px-4 py-3 text-[15px]">
-              <ClockIcon className="h-5 w-5 text-ink-sub" />
-              できあがり次第、この画面でお知らせ
-            </p>
+      <main className="mx-auto max-w-md">
+        <Section title="受け取り場所">
+          <div className="flex items-center gap-3 rounded-lg border border-ink-line px-4 py-3">
+            <StoreIcon className="h-5 w-5 shrink-0 text-ink-sub" />
+            <div>
+              <p className="text-[15px] font-bold">LiSA校食堂</p>
+              <p className="text-[13px] text-ink-sub">
+                できあがったら、この画面と通知音でお知らせします
+              </p>
+            </div>
           </div>
-        </section>
+        </Section>
 
-        <section className="pt-7">
-          <div className="flex items-center justify-between pb-2">
-            <h2 className="text-[15px] font-bold">ご注文内容</h2>
+        <Section title="ご利用方法" titleId="dining-label">
+          <DiningChoice value={dining} onChange={setDining} labelledBy="dining-label" />
+          {dining === 'eat_in' && (
+            <p className="mt-2 inline-block rounded bg-accent-bg px-2 py-1 text-xs font-bold text-accent-fg">
+              席を確保してからご注文ください
+            </p>
+          )}
+        </Section>
+
+        <Section title="お支払い方法">
+          <div className="flex h-14 items-center justify-between rounded-lg border border-ink px-4 ring-1 ring-ink">
+            <span className="text-[17px] font-bold italic text-paypay">PayPay</span>
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ink text-white">
+              <CheckIcon className="h-3.5 w-3.5" />
+            </span>
+          </div>
+        </Section>
+
+        <Section
+          title={`ご注文内容（${count}点）`}
+          action={
             <Link
               to="/menu"
               className="flex h-11 items-center text-sm font-bold underline underline-offset-4"
             >
               商品を追加
             </Link>
-          </div>
+          }
+        >
           <CartList
             items={items}
             onInc={increment}
             onDec={decrement}
             onRemove={remove}
           />
-          <div className="flex items-baseline justify-between py-4">
-            <span className="font-bold">合計</span>
+          <div className="flex items-baseline justify-between pt-4">
+            <span className="font-bold">合計（税込）</span>
             <span className="text-xl font-bold tabular-nums">
               ¥{total.toLocaleString()}
             </span>
           </div>
-        </section>
+        </Section>
 
-        {error && (
-          <p
-            role="alert"
-            className="rounded-lg border border-danger/30 px-4 py-3 text-sm text-danger"
-          >
-            {error}
-          </p>
-        )}
-
-        <ul className="mt-4 list-disc space-y-1 pl-5 text-[13px] leading-relaxed text-ink-sub">
-          <li>注文確定後のキャンセル・変更はできません。</li>
-          <li>できあがったら、この画面と通知音でお知らせします。</li>
-          <li>受け取りの際は、カウンターで注文番号をお伝えください。</li>
-        </ul>
+        <div className="px-4 pt-4">
+          {error && (
+            <p
+              role="alert"
+              className="mb-4 rounded-lg border border-danger/30 px-4 py-3 text-sm text-danger"
+            >
+              {error}
+            </p>
+          )}
+          <ul className="list-disc space-y-1 pl-5 text-[13px] leading-relaxed text-ink-sub">
+            <li>注文を確定すると支払いが行われます。確定後のキャンセル・変更はできません。</li>
+            <li>受け取りの際は、カウンターで注文番号をお伝えください。</li>
+          </ul>
+        </div>
       </main>
 
       <div className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-ink-line bg-white px-4 pt-3 shadow-sheet">
         <div className="mx-auto max-w-md">
+          <div className="flex items-baseline justify-between gap-3 pb-2 text-[13px]">
+            <span className="min-w-0 truncate text-ink-sub">
+              LiSA校食堂（{dining ? DINING_LABEL[dining] : 'ご利用方法 未選択'}）
+            </span>
+            <span className="shrink-0">
+              合計（税込）
+              <span className="ml-1 text-base font-bold tabular-nums">
+                ¥{total.toLocaleString()}
+              </span>
+            </span>
+          </div>
           <button
             type="button"
-            disabled={paying}
+            disabled={paying || !dining}
             onClick={handlePay}
-            className="flex h-[52px] w-full items-center justify-center gap-1.5 rounded-lg bg-paypay text-base font-bold text-white disabled:opacity-60"
+            className={`flex h-[52px] w-full items-center justify-center rounded-lg text-base font-bold disabled:cursor-not-allowed ${
+              dining ? 'bg-paypay text-white disabled:opacity-60' : 'bg-surface text-ink-faint'
+            }`}
           >
-            {paying ? (
+            {!dining ? (
+              'ご利用方法を選んでください'
+            ) : paying ? (
               '処理中…'
             ) : (
               <>
-                <span className="italic">PayPay</span>で支払う・
+                <span className="mr-1 italic">PayPay</span>で支払う・
                 <span className="tabular-nums">¥{total.toLocaleString()}</span>
               </>
             )}
