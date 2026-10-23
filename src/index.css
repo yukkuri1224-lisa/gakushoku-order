@@ -14,7 +14,7 @@ body,
 
 body {
   margin: 0;
-  background: #ffffff;
+  background: #fbf7f2;
   color: #1c1917;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -39,6 +39,13 @@ body {
   /* iPhone のホームバーに重ならない下余白 */
   .pb-safe {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  /* 横スクロールの帯でスクロールバーを出さない */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }
 

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { getOrderRepository } from '@/lib/orders'
 import { todaysOrderIds } from '@/lib/myOrders'
 import { newlyCompleted } from '@/lib/orderProgress'
-import { beep, vibrate } from '@/lib/sound'
+import { playChime, vibrate } from '@/lib/sound'
 import type { Order, OrderStatus } from '@/types/order'
 
 /** 1 件の注文を購読する */
@@ -70,7 +70,7 @@ export function useCompletionAlert(orders: Order[]): {
       const done = newlyCompleted(prev.current, orders)
       if (done.length > 0) {
         setReady(done[0])
-        beep(2)
+        playChime(2)
         vibrate()
       }
     }

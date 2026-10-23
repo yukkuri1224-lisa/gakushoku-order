@@ -1,4 +1,5 @@
 // デモ用メニュー定数（LiSA校食堂の掲示「Basic MENU」「軽食メニュー」より）。
+// 画像は public/menu/illust（いただいたイラスト）と public/menu/irasutoya（いらすとや）。どちらもイメージ。
 // ▼本番化の差し替えポイント（メニュー供給元）:
 //   メニューはここのコード内定数で持つ（Firestore からは取得しない）。
 //   将来 CMS や管理画面から取得したい場合は、この配列を返す関数に置き換える。
@@ -28,7 +29,8 @@ export interface MenuItem {
   price: number // 基本価格（円）
   category: string
   description?: string
-  image?: string
+  image?: string // 画像はイメージ（いただいたイラスト、またはいらすとや）
+  badge?: string // 画像に重ねる小さなラベル（例: 日替わり）
   unit?: string // 価格の単位（例: 1こ）。一覧・商品シートで価格の後ろに出す
   optionGroups?: OptionGroup[]
 }
@@ -68,14 +70,17 @@ const FUKUJINZUKE: OptionGroup = {
 /** ジャンルの表示順（メニュー画面の絞り込みもこの順） */
 export const MENU_CATEGORIES: string[] = ['定食', '麺類', 'カレー', '軽食']
 
+const IMG = '/menu/irasutoya'
+const ILLUST = '/menu/illust'
+
 export const MENU: MenuItem[] = [
-  // 定食
+  // 定食（中身は日によって変わるため説明は書かない。画像は定食のイメージ）
   {
     id: 'lunch_a',
     name: 'ランチA',
     price: 510,
     category: '定食',
-    description: '日替わりの定食',
+    image: `${IMG}/set_meal.jpg`,
     optionGroups: [SIZE],
   },
   {
@@ -83,7 +88,7 @@ export const MENU: MenuItem[] = [
     name: 'ランチB',
     price: 530,
     category: '定食',
-    description: '日替わりの定食',
+    image: `${IMG}/set_meal.jpg`,
     optionGroups: [SIZE],
   },
   {
@@ -91,7 +96,7 @@ export const MENU: MenuItem[] = [
     name: 'ランチC',
     price: 560,
     category: '定食',
-    description: '日替わりの定食',
+    image: `${IMG}/set_meal.jpg`,
     optionGroups: [SIZE],
   },
   {
@@ -99,17 +104,18 @@ export const MENU: MenuItem[] = [
     name: '夕定食',
     price: 490,
     category: '定食',
-    description: '夕方の定食（大盛りはありません）',
+    image: `${IMG}/set_meal.jpg`,
   },
 
   // 麺類
   {
     id: 'ramen',
-    name: '醤油ラーメン',
+    name: 'ラーメン',
     price: 430,
     category: '麺類',
-    description: 'あっさり醤油スープの定番',
-    image: '/menu/illust/ramen.jpg',
+    description: '日替わりで味が変わります',
+    image: `${ILLUST}/ramen.jpg`,
+    badge: '日替わり',
     optionGroups: [SIZE],
   },
   {
@@ -118,7 +124,7 @@ export const MENU: MenuItem[] = [
     price: 430,
     category: '麺類',
     description: 'つるんとしたワンタン入り',
-    image: '/menu/illust/wonton_ramen.jpg',
+    image: `${ILLUST}/wonton_ramen.jpg`,
     optionGroups: [SIZE],
   },
   {
@@ -127,6 +133,7 @@ export const MENU: MenuItem[] = [
     price: 340,
     category: '麺類',
     description: 'だしのきいたシンプルな一杯',
+    image: `${IMG}/kake.jpg`,
     optionGroups: [NOODLE, SIZE],
   },
   {
@@ -135,7 +142,7 @@ export const MENU: MenuItem[] = [
     price: 390,
     category: '麺類',
     description: 'わかめをたっぷりのせて',
-    image: '/menu/illust/wakame.jpg',
+    image: `${ILLUST}/wakame.jpg`,
     optionGroups: [NOODLE, SIZE],
   },
   {
@@ -144,7 +151,7 @@ export const MENU: MenuItem[] = [
     price: 390,
     category: '麺類',
     description: '天かすとねぎをのせて',
-    image: '/menu/illust/tanuki.jpg',
+    image: `${ILLUST}/tanuki.jpg`,
     optionGroups: [NOODLE, SIZE],
   },
   {
@@ -153,6 +160,7 @@ export const MENU: MenuItem[] = [
     price: 420,
     category: '麺類',
     description: '甘く煮たおあげをのせて',
+    image: `${IMG}/kitsune.jpg`,
     optionGroups: [NOODLE, SIZE],
   },
   {
@@ -161,6 +169,7 @@ export const MENU: MenuItem[] = [
     price: 450,
     category: '麺類',
     description: 'だしのきいたカレーつゆで',
+    image: `${IMG}/curry_noodle.jpg`,
     optionGroups: [NOODLE, SIZE],
   },
 
@@ -171,6 +180,7 @@ export const MENU: MenuItem[] = [
     price: 480,
     category: 'カレー',
     description: '程よい辛さのごろっと具材',
+    image: `${IMG}/curry.jpg`,
     optionGroups: [SIZE, FUKUJINZUKE],
   },
   {
@@ -179,6 +189,7 @@ export const MENU: MenuItem[] = [
     price: 580,
     category: 'カレー',
     description: 'サクサクのカツをのせて',
+    image: `${IMG}/katsu_curry.jpg`,
     optionGroups: [SIZE, FUKUJINZUKE],
   },
   {
@@ -187,24 +198,53 @@ export const MENU: MenuItem[] = [
     price: 580,
     category: 'カレー',
     description: 'から揚げをのせて',
-    image: '/menu/illust/karaage_curry.jpg',
+    image: `${ILLUST}/karaage_curry.jpg`,
     optionGroups: [SIZE, FUKUJINZUKE],
   },
 
   // 軽食
-  { id: 'takoyaki', name: 'たこ焼き', price: 270, category: '軽食' },
-  { id: 'hamkatsu', name: 'ハムカツ', price: 150, category: '軽食' },
-  { id: 'yakisoba', name: '焼きそば', price: 270, category: '軽食' },
-  { id: 'kaori_age', name: '若鶏の香り揚げ', price: 230, category: '軽食', unit: '1こ' },
-  { id: 'karaage', name: 'から揚げ', price: 180, category: '軽食', unit: '1こ' },
+  { id: 'takoyaki', name: 'たこ焼き', price: 270, category: '軽食', image: `${IMG}/takoyaki.jpg` },
+  { id: 'hamkatsu', name: 'ハムカツ', price: 150, category: '軽食', image: `${IMG}/hamkatsu.jpg` },
+  { id: 'yakisoba', name: '焼きそば', price: 270, category: '軽食', image: `${IMG}/yakisoba.jpg` },
+  {
+    id: 'kaori_age',
+    name: '若鶏の香り揚げ',
+    price: 230,
+    category: '軽食',
+    image: `${IMG}/kaori_age.jpg`,
+    unit: '1こ',
+  },
+  {
+    id: 'karaage',
+    name: 'から揚げ',
+    price: 180,
+    category: '軽食',
+    image: `${IMG}/karaage.jpg`,
+    unit: '1こ',
+  },
   {
     id: 'manzoku_croquette',
     name: 'まんぞくコロッケ',
     price: 150,
     category: '軽食',
+    image: `${IMG}/manzoku_croquette.jpg`,
     unit: '1こ',
   },
-  { id: 'croquette', name: 'コロッケ', price: 80, category: '軽食', unit: '1こ' },
-  { id: 'hash_potato', name: 'ハッシュドポテト', price: 150, category: '軽食', unit: '1こ' },
-  { id: 'fries', name: 'フライドポテト', price: 180, category: '軽食' },
+  {
+    id: 'croquette',
+    name: 'コロッケ',
+    price: 80,
+    category: '軽食',
+    image: `${IMG}/croquette.jpg`,
+    unit: '1こ',
+  },
+  {
+    id: 'hash_potato',
+    name: 'ハッシュドポテト',
+    price: 150,
+    category: '軽食',
+    image: `${IMG}/hash_potato.jpg`,
+    unit: '1こ',
+  },
+  { id: 'fries', name: 'フライドポテト', price: 180, category: '軽食', image: `${IMG}/fries.jpg` },
 ]

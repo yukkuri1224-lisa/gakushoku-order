@@ -7,6 +7,8 @@ import { STAFF_KEY } from '@/lib/gate'
 import { getOrderRepository } from '@/lib/orders'
 import { MENU } from '@/data/menu'
 import { buildOrderItem } from '@/lib/menuOptions'
+import { getSoldOutRepository } from '@/lib/soldOut'
+import { todayKey } from '@/lib/orders/types'
 
 // React の act() をテスト環境で有効にする
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -71,5 +73,34 @@ describe('厨房ボード', () => {
     const card = container.querySelector('article')!
     expect(card.textContent).toContain('そば')
     expect(card.textContent).not.toContain('普通')
+  })
+
+  it('「売り切れ」タブで商品を売り切れにでき、もう一度押すと販売を再開する', async () => {
+    container = document.createElement('div')
+    document.body.appendChild(container)
+    root = createRoot(container)
+    act(() =>
+      root!.render(
+        <MemoryRouter>
+          <StaffPage />
+        </MemoryRouter>,
+      ),
+    )
+    const tab = [...container.querySelectorAll('[role="tab"]')].find((t) =>
+      t.textContent?.includes('売り切れ'),
+    ) as HTMLButtonElement
+    act(() => tab.click())
+
+    const toggle = () =>
+      container!.querySelector('button[aria-label="たこ焼きを売り切れにする"], button[aria-label="たこ焼きの販売を再開する"]') as HTMLButtonElement
+    expect(toggle().getAttribute('aria-pressed')).toBe('false')
+    await act(async () => toggle().click())
+    expect(toggle().getAttribute('aria-pressed')).toBe('true')
+    let ids: string[] = []
+    getSoldOutRepository().subscribe(todayKey(), (x) => (ids = x))()
+    expect(ids).toContain('takoyaki')
+
+    await act(async () => toggle().click())
+    expect(toggle().getAttribute('aria-pressed')).toBe('false')
   })
 })

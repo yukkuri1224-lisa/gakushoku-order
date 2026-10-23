@@ -23,7 +23,7 @@ export function OptionGroupField({
           {group.label}
         </h3>
         {group.required && (
-          <span className="rounded bg-accent-bg px-2 py-0.5 text-xs font-bold text-accent-fg">
+          <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-bold text-brand-dark">
             必須
           </span>
         )}
@@ -52,8 +52,8 @@ export function OptionGroupField({
               aria-checked={checked}
               tabIndex={focusable ? 0 : -1}
               onClick={() => onChange(c.id)}
-              className={`flex min-h-14 items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left ${
-                checked ? 'border-ink ring-1 ring-ink' : 'border-ink-line'
+              className={`flex min-h-14 items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left transition-colors ${
+                checked ? 'border-brand bg-brand-soft ring-1 ring-brand' : 'border-ink-line bg-white'
               }`}
             >
               <span className="min-w-0">
@@ -68,7 +68,7 @@ export function OptionGroupField({
               </span>
               <span
                 className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                  checked ? 'bg-ink text-white' : 'border-2 border-ink-line'
+                  checked ? 'bg-brand text-white' : 'border-2 border-ink-line'
                 }`}
               >
                 {checked && <CheckIcon className="h-3.5 w-3.5" />}

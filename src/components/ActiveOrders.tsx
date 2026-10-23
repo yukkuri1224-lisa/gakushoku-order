@@ -22,7 +22,7 @@ export function ActiveOrders({ className = '' }: { className?: string }) {
               <Link
                 key={o.id}
                 to={`/order/${o.id}`}
-                className={`flex items-center gap-3 rounded-lg px-4 py-3 text-white ${
+                className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-white shadow-card ${
                   done ? 'bg-success' : 'bg-ink'
                 }`}
               >

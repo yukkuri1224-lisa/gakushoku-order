@@ -59,9 +59,22 @@ describe('メニューのデータ', () => {
     }
   })
 
-  it('画像のある商品は、public に画像ファイルがある', () => {
+  it('すべての商品に画像があり、public に画像ファイルがある', () => {
     for (const m of MENU) {
-      if (m.image) expect(existsSync(`${publicDir}${m.image}`)).toBe(true)
+      expect(m.image, m.name).toBeDefined()
+      expect(existsSync(`${publicDir}${m.image}`), m.name).toBe(true)
+    }
+  })
+
+  it('ラーメンは日替わりで味が変わるので、名前は「ラーメン」', () => {
+    const ramen = MENU.find((m) => m.id === 'ramen')!
+    expect(ramen.name).toBe('ラーメン')
+    expect(ramen.badge).toBe('日替わり')
+  })
+
+  it('ランチA〜C・夕定食は中身が掲示にないので、説明を書かない', () => {
+    for (const id of ['lunch_a', 'lunch_b', 'lunch_c', 'dinner_set']) {
+      expect(MENU.find((m) => m.id === id)!.description).toBeUndefined()
     }
   })
 })

@@ -28,3 +28,5 @@ if (isFirebaseConfigured) {
 
 // 未設定時は使われない（getOrderRepository がローカル実装を返すため）。
 export const db = firestore
+// Google ログイン（src/lib/auth.ts）で使う
+export const firebaseApp = app

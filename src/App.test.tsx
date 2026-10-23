@@ -53,7 +53,7 @@ describe('最初の画面の振り分け', () => {
     localStorage.setItem(GATE_KEY, '1')
     useDiningStore.setState({ option: 'takeout' })
     const text = renderAt('/menu')
-    expect(text).toContain('醤油ラーメン')
+    expect(text).toContain('ラーメン')
     expect(text).not.toContain('ご利用方法を選んでください')
   })
 

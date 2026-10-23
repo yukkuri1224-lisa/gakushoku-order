@@ -8,6 +8,7 @@ import { Section } from '@/components/Section'
 import { CheckIcon, StoreIcon } from '@/components/icons'
 import { cartCount, cartTotal, useCartStore } from '@/store/cart'
 import { useDiningStore } from '@/store/dining'
+import { useSoldOut } from '@/hooks/useSoldOut'
 import {
   clearPendingPayPayId,
   confirmPayPayPayment,
@@ -40,6 +41,7 @@ export function CheckoutPage() {
   const remove = useCartStore((s) => s.remove)
   const dining = useDiningStore((s) => s.option)
   const setDining = useDiningStore((s) => s.setOption)
+  const soldOut = useSoldOut()
 
   const [paying, setPaying] = useState(false)
   // PayPay から戻った直後（?pp=return）は最初から確認画面を出す
@@ -53,6 +55,12 @@ export function CheckoutPage() {
 
   const total = cartTotal(items)
   const count = cartCount(items)
+  const hasSoldOut = items.some((i) => i.menuItemId !== undefined && soldOut.has(i.menuItemId))
+  const blockedReason = hasSoldOut
+    ? '売り切れの商品を削除してください'
+    : !dining
+      ? 'ご利用方法を選んでください'
+      : null
 
   /**
    * 支払い済みの注文を登録して注文番号画面へ。
@@ -122,7 +130,7 @@ export function CheckoutPage() {
   }, [])
 
   const handlePay = async () => {
-    if (items.length === 0 || paying || !dining) return
+    if (items.length === 0 || paying || !dining || blockedReason) return
     setError(null)
     setPaying(true)
     try {
@@ -172,7 +180,7 @@ export function CheckoutPage() {
             type="button"
             onClick={retry}
             disabled={retrying}
-            className="mt-8 h-[52px] w-full rounded-lg bg-ink font-bold text-white disabled:opacity-60"
+            className="mt-8 h-14 w-full rounded-full bg-brand font-bold text-white disabled:opacity-60"
           >
             {retrying ? '登録しています…' : '注文の登録をやり直す'}
           </button>
@@ -198,7 +206,7 @@ export function CheckoutPage() {
           {error && <p className="mt-3 text-sm text-danger">{error}</p>}
           <Link
             to="/menu"
-            className="mt-6 flex h-[52px] w-full items-center justify-center rounded-lg bg-ink font-bold text-white"
+            className="mt-6 flex h-14 w-full items-center justify-center rounded-full bg-brand font-bold text-white shadow-float"
           >
             メニューを見る
           </Link>
@@ -208,13 +216,15 @@ export function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-white pb-44">
+    <div className="min-h-dvh pb-48">
       <AppHeader title="注文内容の確認" back="/menu" />
 
       <main className="mx-auto max-w-md">
         <Section title="受け取り場所">
-          <div className="flex items-center gap-3 rounded-lg border border-ink-line px-4 py-3">
-            <StoreIcon className="h-5 w-5 shrink-0 text-ink-sub" />
+          <div className="flex items-center gap-3 rounded-xl bg-cream px-4 py-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand">
+              <StoreIcon className="h-5 w-5" />
+            </span>
             <div>
               <p className="text-[15px] font-bold">LiSA校食堂</p>
               <p className="text-[13px] text-ink-sub">
@@ -227,16 +237,16 @@ export function CheckoutPage() {
         <Section title="ご利用方法" titleId="dining-label">
           <DiningChoice value={dining} onChange={setDining} labelledBy="dining-label" />
           {dining === 'eat_in' && (
-            <p className="mt-2 inline-block rounded bg-accent-bg px-2 py-1 text-xs font-bold text-accent-fg">
+            <p className="mt-2 inline-block rounded-full bg-accent-bg px-2.5 py-1 text-xs font-bold text-accent-fg">
               席を確保してからご注文ください
             </p>
           )}
         </Section>
 
         <Section title="お支払い方法">
-          <div className="flex h-14 items-center justify-between rounded-lg border border-ink px-4 ring-1 ring-ink">
+          <div className="flex h-14 items-center justify-between rounded-xl border border-brand bg-brand-soft px-4 ring-1 ring-brand">
             <span className="text-[17px] font-bold italic text-paypay">PayPay</span>
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ink text-white">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-white">
               <CheckIcon className="h-3.5 w-3.5" />
             </span>
           </div>
@@ -247,21 +257,22 @@ export function CheckoutPage() {
           action={
             <Link
               to="/menu"
-              className="flex h-11 items-center text-sm font-bold underline underline-offset-4"
+              className="flex h-9 items-center rounded-full bg-brand-soft px-3 text-sm font-bold text-brand-dark"
             >
-              商品を追加
+              ＋ 商品を追加
             </Link>
           }
         >
           <CartList
             items={items}
+            soldOutIds={soldOut}
             onInc={increment}
             onDec={decrement}
             onRemove={remove}
           />
           <div className="flex items-baseline justify-between pt-4">
             <span className="font-bold">合計（税込）</span>
-            <span className="text-xl font-bold tabular-nums">
+            <span className="text-xl font-bold tabular-nums text-brand">
               ¥{total.toLocaleString()}
             </span>
           </div>
@@ -283,7 +294,7 @@ export function CheckoutPage() {
         </div>
       </main>
 
-      <div className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-ink-line bg-white px-4 pt-3 shadow-sheet">
+      <div className="pb-safe fixed inset-x-0 bottom-0 z-30 rounded-t-3xl bg-white px-4 pt-3 shadow-sheet">
         <div className="mx-auto max-w-md">
           <div className="flex items-baseline justify-between gap-3 pb-2 text-[13px]">
             <span className="min-w-0 truncate text-ink-sub">
@@ -298,14 +309,14 @@ export function CheckoutPage() {
           </div>
           <button
             type="button"
-            disabled={paying || !dining}
+            disabled={paying || blockedReason !== null}
             onClick={handlePay}
-            className={`flex h-[52px] w-full items-center justify-center rounded-lg text-base font-bold disabled:cursor-not-allowed ${
-              dining ? 'bg-paypay text-white disabled:opacity-60' : 'bg-surface text-ink-sub'
+            className={`flex h-14 w-full items-center justify-center rounded-full text-base font-bold disabled:cursor-not-allowed ${
+              blockedReason ? 'bg-surface text-ink-sub' : 'bg-paypay text-white disabled:opacity-60'
             }`}
           >
-            {!dining ? (
-              'ご利用方法を選んでください'
+            {blockedReason ? (
+              blockedReason
             ) : paying ? (
               '処理中…'
             ) : (

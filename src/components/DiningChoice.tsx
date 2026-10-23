@@ -31,8 +31,8 @@ export function DiningChoice({
             aria-checked={checked}
             tabIndex={checked || (value === null && i === 0) ? 0 : -1}
             onClick={() => onChange(option)}
-            className={`flex h-14 items-center justify-between gap-2 rounded-lg border px-3 text-left ${
-              checked ? 'border-ink ring-1 ring-ink' : 'border-ink-line'
+            className={`flex h-14 items-center justify-between gap-2 rounded-xl border px-3 text-left transition-colors ${
+              checked ? 'border-brand bg-brand-soft ring-1 ring-brand' : 'border-ink-line bg-white'
             }`}
           >
             <span className={`min-w-0 flex-1 text-[15px] ${checked ? 'font-bold' : ''}`}>
@@ -40,7 +40,7 @@ export function DiningChoice({
             </span>
             <span
               className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                checked ? 'bg-ink text-white' : 'border-2 border-ink-line'
+                checked ? 'bg-brand text-white' : 'border-2 border-ink-line'
               }`}
             >
               {checked && <CheckIcon className="h-3.5 w-3.5" />}

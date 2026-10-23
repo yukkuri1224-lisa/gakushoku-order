@@ -19,7 +19,7 @@ export function Toast() {
       className="pointer-events-none fixed inset-x-0 bottom-28 z-50 flex justify-center px-4"
     >
       {message && (
-        <div className="flex animate-fade-in items-center gap-2 rounded-lg bg-ink px-4 py-3 text-sm font-bold text-white">
+        <div className="flex animate-pop-in items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-bold text-white shadow-card">
           <CheckIcon className="h-5 w-5" />
           {message}
         </div>

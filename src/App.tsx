@@ -5,41 +5,40 @@ import { MenuPage } from '@/pages/MenuPage'
 import { CheckoutPage } from '@/pages/CheckoutPage'
 import { OrderStatusPage } from '@/pages/OrderStatusPage'
 import { StaffPage } from '@/pages/StaffPage'
-import { RequireGate } from '@/components/RequireGate'
+import { RequireLogin } from '@/components/RequireLogin'
 import { RequireDining } from '@/components/RequireDining'
 import { PaymentModalHost } from '@/components/PaymentModalHost'
 import { Toast } from '@/components/Toast'
-import { GATE_KEY } from '@/lib/gate'
 
 export default function App() {
   return (
-    <div className="min-h-dvh bg-white text-ink">
+    <div className="min-h-dvh bg-cream text-ink">
       <Routes>
         <Route path="/" element={<GatePage />} />
         <Route
           path="/start"
           element={
-            <RequireGate flag={GATE_KEY} redirectTo="/">
+            <RequireLogin>
               <DiningPage />
-            </RequireGate>
+            </RequireLogin>
           }
         />
         <Route
           path="/menu"
           element={
-            <RequireGate flag={GATE_KEY} redirectTo="/">
+            <RequireLogin>
               <RequireDining>
                 <MenuPage />
               </RequireDining>
-            </RequireGate>
+            </RequireLogin>
           }
         />
         <Route
           path="/checkout"
           element={
-            <RequireGate flag={GATE_KEY} redirectTo="/">
+            <RequireLogin>
               <CheckoutPage />
-            </RequireGate>
+            </RequireLogin>
           }
         />
         <Route path="/order/:orderId" element={<OrderStatusPage />} />

@@ -6,6 +6,7 @@ import { AppHeader } from '@/components/AppHeader'
 import { OptionTags } from '@/components/OptionTags'
 import { ReadyOverlay } from '@/components/ReadyOverlay'
 import { Section } from '@/components/Section'
+import { SoundButton } from '@/components/SoundButton'
 import { WaitingNote } from '@/components/WaitingNote'
 import { CheckIcon } from '@/components/icons'
 import { DINING_LABEL, type OrderStatus } from '@/types/order'
@@ -42,18 +43,18 @@ function ProgressStepper({ status }: { status: OrderStatus }) {
             {idx > 0 && (
               <span
                 aria-hidden="true"
-                className={`absolute right-1/2 top-[9px] h-0.5 w-full ${
-                  reached ? 'bg-ink' : 'bg-ink-line'
+                className={`absolute right-1/2 top-[9px] h-1 w-full rounded-full ${
+                  reached ? 'bg-brand' : 'bg-ink-line'
                 }`}
               />
             )}
             <span
               className={`relative z-10 h-5 w-5 rounded-full border-2 ${
-                reached ? 'border-ink bg-ink' : 'border-ink-line bg-white'
-              } ${isCurrent ? 'ring-4 ring-ink/15' : ''}`}
+                reached ? 'border-brand bg-brand' : 'border-ink-line bg-white'
+              } ${isCurrent ? 'ring-4 ring-brand/20' : ''}`}
             />
             <span
-              className={`mt-2 text-xs ${reached ? 'font-bold text-ink' : 'text-ink-faint'}`}
+              className={`mt-2 text-xs ${reached ? 'font-bold text-brand-dark' : 'text-ink-sub'}`}
             >
               {s.label}
             </span>
@@ -100,7 +101,7 @@ export function OrderStatusPage() {
           <p className="mt-2 break-all text-xs text-ink-faint">注文ID：{orderId}</p>
           <Link
             to="/menu"
-            className="mt-8 flex h-[52px] w-full items-center justify-center rounded-lg bg-ink font-bold text-white"
+            className="mt-8 flex h-14 w-full items-center justify-center rounded-full bg-brand font-bold text-white shadow-float"
           >
             メニューに戻る
           </Link>
@@ -112,13 +113,13 @@ export function OrderStatusPage() {
   const done = order.status === 'completed'
 
   return (
-    <div className="min-h-dvh bg-white pb-10">
+    <div className="min-h-dvh pb-10">
       <AppHeader title="LiSA校食堂" />
       <main className="mx-auto max-w-md">
         {done ? (
           <div
             role="status"
-            className="mx-4 mt-5 flex items-center gap-3 rounded-lg bg-success px-4 py-4 text-white"
+            className="mx-4 mt-5 flex items-center gap-3 rounded-2xl bg-success px-4 py-4 text-white shadow-card"
           >
             <CheckIcon className="h-7 w-7 shrink-0" />
             <div>
@@ -132,12 +133,13 @@ export function OrderStatusPage() {
             <p className="mt-1 text-[13px] text-ink-sub">
               できあがったら、この画面と通知音でお知らせします
             </p>
+            <SoundButton className="mt-3" />
           </div>
         )}
 
-        <section className="mx-4 mt-5 rounded-lg bg-surface px-5 pb-2 pt-5">
+        <section className="mx-4 mt-5 rounded-3xl bg-white px-5 pb-2 pt-5 shadow-card">
           <p className="text-center text-[13px] font-bold text-ink-sub">注文番号</p>
-          <p className="text-center text-[64px] font-bold leading-none tabular-nums">
+          <p className="text-center text-[72px] font-bold leading-none tabular-nums text-brand">
             {order.orderNumber}
           </p>
           <ProgressStepper status={order.status} />
@@ -151,7 +153,6 @@ export function OrderStatusPage() {
           </dl>
         </section>
 
-        <div className="mt-5 border-t-8 border-surface" />
         <Section title="受け取り方">
           <ol className="list-decimal space-y-1 pl-5 text-[15px] leading-relaxed">
             <li>できあがったら、通知音でお知らせします</li>
@@ -184,7 +185,7 @@ export function OrderStatusPage() {
           </ul>
           <div className="flex items-baseline justify-between pt-3">
             <span className="font-bold">合計（税込）</span>
-            <span className="text-lg font-bold tabular-nums">
+            <span className="text-lg font-bold tabular-nums text-brand">
               ¥{order.total.toLocaleString()}
             </span>
           </div>
@@ -196,7 +197,7 @@ export function OrderStatusPage() {
         <div className="px-4 pt-5">
           <Link
             to="/menu"
-            className="flex h-[52px] w-full items-center justify-center rounded-lg border border-ink-line font-bold"
+            className="flex h-14 w-full items-center justify-center rounded-full bg-white font-bold text-brand shadow-card"
           >
             追加で注文する
           </Link>

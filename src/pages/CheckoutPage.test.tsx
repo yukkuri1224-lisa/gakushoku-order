@@ -7,6 +7,8 @@ import { MENU } from '@/data/menu'
 import { buildOrderItem, defaultSelection } from '@/lib/menuOptions'
 import { useCartStore } from '@/store/cart'
 import { useDiningStore } from '@/store/dining'
+import { getSoldOutRepository } from '@/lib/soldOut'
+import { todayKey } from '@/lib/orders/types'
 
 // React の act() をテスト環境で有効にする
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -73,5 +75,18 @@ describe('注文内容の確認', () => {
     expect(el.textContent).toContain('ご注文内容（2点）')
     expect(el.querySelector('[aria-label="選んだ内容"]')?.textContent).toContain('普通')
     expect(el.textContent).toContain('合計（税込）')
+  })
+
+  it('カートに売り切れの商品があると支払えず、その商品に「売り切れ」と出す', async () => {
+    useDiningStore.setState({ option: 'eat_in' })
+    await getSoldOutRepository().setSoldOut(todayKey(), 'ramen', true)
+    const el = render()
+    const button = findButton(el, '売り切れの商品を削除してください')
+    expect(button).toBeDefined()
+    expect(button!.disabled).toBe(true)
+    expect(el.querySelector('[aria-label="選んだ内容"]')?.closest('li')?.textContent).toContain(
+      '売り切れ',
+    )
+    await act(() => getSoldOutRepository().setSoldOut(todayKey(), 'ramen', false))
   })
 })

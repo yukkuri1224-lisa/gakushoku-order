@@ -12,6 +12,13 @@ export default {
           line: '#E7E5E4', // 区切り線
         },
         surface: '#F5F5F4', // 薄い灰色の地
+        cream: '#FBF7F2', // 画面の地（あたたかい白）
+        brand: {
+          DEFAULT: '#C8461B', // 食堂の色（メインボタン・価格・選択中）。白文字とのコントラスト 4.8
+          dark: '#9A3412', // 淡い地の上の文字
+          soft: '#FFF1E8', // 淡い地（選択中のカード・ラベル）
+          bright: '#F26A2E', // 飾り（文字には使わない）
+        },
         accent: {
           bg: '#FDF3D7', // 小さなラベルの地（からし色）
           fg: '#7A5300', // 小さなラベルの文字
@@ -21,8 +28,9 @@ export default {
         paypay: '#FF0033', // PayPay ボタン（例外）
       },
       boxShadow: {
-        // 影は下から開くシートと最下部の固定バーだけに使う
-        sheet: '0 -8px 24px -12px rgba(28, 25, 23, 0.18)',
+        sheet: '0 -8px 24px -12px rgba(28, 25, 23, 0.18)', // 下から開くシート・最下部のバー
+        card: '0 1px 2px rgba(28, 25, 23, 0.05), 0 8px 24px -14px rgba(28, 25, 23, 0.22)', // 白いカード
+        float: '0 10px 30px -10px rgba(154, 52, 18, 0.55)', // 浮いているボタン（カートへ進む）
       },
       keyframes: {
         'fade-in': {
@@ -33,10 +41,15 @@ export default {
           '0%': { transform: 'translateY(100%)' },
           '100%': { transform: 'translateY(0)' },
         },
+        'pop-in': {
+          '0%': { transform: 'scale(0.6)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.2s ease-out both',
         'sheet-up': 'sheet-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'pop-in': 'pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both',
       },
     },
   },

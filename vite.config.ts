@@ -18,9 +18,9 @@ export default defineConfig({
         'icon-512.png',
       ],
       manifest: {
-        name: '学食モバイルオーダー',
+        name: 'LiSA校食堂 モバイルオーダー',
         short_name: '学食オーダー',
-        description: '学食のモバイルオーダー（デモ）',
+        description: 'LiSA校食堂のモバイルオーダー',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',

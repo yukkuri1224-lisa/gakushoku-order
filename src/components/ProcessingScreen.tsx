@@ -9,14 +9,14 @@ export function ProcessingScreen({
   return (
     <div
       role="status"
-      className="flex min-h-dvh flex-col items-center justify-center bg-white p-6 text-center"
+      className="flex min-h-dvh flex-col items-center justify-center bg-cream p-6 text-center"
     >
       <div
-        className="mb-5 h-10 w-10 animate-spin rounded-full border-[3px] border-ink-line border-t-ink"
+        className="mb-5 h-10 w-10 animate-spin rounded-full border-[3px] border-brand-soft border-t-brand"
         aria-hidden="true"
       />
       <p className="text-base font-bold">{title}</p>
-      <p className="mt-1 text-sm text-ink-sub">{description}</p>
+      {description && <p className="mt-1 text-sm text-ink-sub">{description}</p>}
     </div>
   )
 }

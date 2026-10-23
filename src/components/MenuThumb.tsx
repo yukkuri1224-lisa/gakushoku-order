@@ -13,9 +13,9 @@ export function MenuThumb({
   if (!item?.image) return null
   return (
     <span
-      className={`shrink-0 overflow-hidden rounded-lg border border-ink-line bg-white ${className}`}
+      className={`shrink-0 overflow-hidden rounded-xl bg-white ring-1 ring-ink-line ${className}`}
     >
-      <img src={item.image} alt="" className="h-full w-full object-cover" loading="lazy" />
+      <img src={item.image} alt="" className="h-full w-full object-contain p-0.5" loading="lazy" />
     </span>
   )
 }

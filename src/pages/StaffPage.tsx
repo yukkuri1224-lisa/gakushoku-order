@@ -4,6 +4,10 @@ import { getOrderRepository } from '@/lib/orders'
 import { changedOptions, itemKey } from '@/lib/menuOptions'
 import { StatusBadge } from '@/components/StatusBadge'
 import { PasscodeScreen } from '@/components/PasscodeScreen'
+import { SoldOutPanel } from '@/components/SoldOutPanel'
+import { SoundButton } from '@/components/SoundButton'
+import { BrandMark } from '@/components/icons'
+import { useSoldOut } from '@/hooks/useSoldOut'
 import { STAFF_KEY, STAFF_PASSWORD, isGateOpen, openGate } from '@/lib/gate'
 import {
   DINING_SHORT,
@@ -12,7 +16,7 @@ import {
   type OrderStatus,
   type SelectedOption,
 } from '@/types/order'
-import { beep } from '@/lib/sound'
+import { playChime } from '@/lib/sound'
 
 export function StaffPage() {
   const [authed, setAuthed] = useState(() => isGateOpen(STAFF_KEY))
@@ -74,6 +78,8 @@ function DiningBadge({ option }: { option: DiningOption }) {
 
 function StaffBoard() {
   const [orders, setOrders] = useState<Order[]>([])
+  const [tab, setTab] = useState<'orders' | 'soldOut'>('orders')
+  const soldOut = useSoldOut()
   const knownIds = useRef<Set<string> | null>(null)
   const repo = getOrderRepository()
 
@@ -84,7 +90,7 @@ function StaffBoard() {
       // 新規注文が来たら通知音（初回ロードは鳴らさない）
       if (knownIds.current) {
         const hasNew = list.some((o) => !knownIds.current?.has(o.id))
-        if (hasNew) beep(1)
+        if (hasNew) playChime(1)
       }
       knownIds.current = ids
     })
@@ -97,102 +103,143 @@ function StaffBoard() {
     void repo.updateStatus(id, status)
   }
 
+  const tabClass = (active: boolean) =>
+    `flex h-11 items-center gap-1.5 rounded-full px-4 text-sm font-bold ${
+      active ? 'bg-ink text-white' : 'bg-white text-ink shadow-card'
+    }`
+
   return (
-    <div className="min-h-dvh bg-surface">
-      <header className="sticky top-0 z-30 border-b border-ink-line bg-white">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-          <div className="flex items-baseline gap-3">
+    <div className="min-h-dvh bg-cream">
+      <header className="sticky top-0 z-30 border-b border-ink-line/70 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
+          <div className="flex items-center gap-2.5">
+            <BrandMark />
             <h1 className="text-base font-bold">厨房ボード</h1>
-            <p className="text-sm text-ink-sub">
-              進行中 <span className="font-bold tabular-nums text-ink">{orders.length}</span> 件
-            </p>
           </div>
-          <Link
-            to="/"
-            className="flex h-11 items-center text-sm text-ink-sub underline underline-offset-4"
-          >
-            注文画面へ
-          </Link>
+          <div className="flex items-center gap-2">
+            <SoundButton />
+            <Link
+              to="/"
+              className="hidden h-11 items-center text-sm text-ink-sub underline underline-offset-4 sm:flex"
+            >
+              注文画面へ
+            </Link>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl p-4">
-        {orders.length === 0 ? (
-          <p className="py-24 text-center text-sm text-ink-sub">
-            進行中の注文はありません
-          </p>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {orders.map((o) => (
-              <article
-                key={o.id}
-                className="flex flex-col rounded-lg border border-ink-line bg-white p-4"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="flex items-center gap-2">
-                    <span className="flex items-baseline gap-1">
-                      <span className="text-xs text-ink-sub">No.</span>
-                      <span className="text-[32px] font-bold leading-none tabular-nums">
-                        {o.orderNumber}
+      <div className="mx-auto max-w-5xl px-4 pt-4">
+        <div role="tablist" aria-label="厨房ボードの表示" className="flex gap-2">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'orders'}
+            onClick={() => setTab('orders')}
+            className={tabClass(tab === 'orders')}
+          >
+            注文
+            <span className="tabular-nums">{orders.length}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'soldOut'}
+            onClick={() => setTab('soldOut')}
+            className={tabClass(tab === 'soldOut')}
+          >
+            売り切れ
+            {soldOut.size > 0 && (
+              <span className="rounded-full bg-danger px-1.5 text-xs tabular-nums text-white">
+                {soldOut.size}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {tab === 'soldOut' ? (
+        <main className="mx-auto max-w-5xl p-4">
+          <SoldOutPanel soldOut={soldOut} />
+        </main>
+      ) : (
+        <main className="mx-auto max-w-5xl p-4">
+          {orders.length === 0 ? (
+            <p className="py-24 text-center text-sm text-ink-sub">
+              進行中の注文はありません
+            </p>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {orders.map((o) => (
+                <article
+                  key={o.id}
+                  className="flex flex-col rounded-2xl bg-white p-4 shadow-card"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="flex items-center gap-2">
+                      <span className="flex items-baseline gap-1">
+                        <span className="text-xs text-ink-sub">No.</span>
+                        <span className="text-[32px] font-bold leading-none tabular-nums">
+                          {o.orderNumber}
+                        </span>
                       </span>
-                    </span>
-                    {o.diningOption && <DiningBadge option={o.diningOption} />}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs tabular-nums text-ink-sub">
-                      {new Date(o.createdAt).toLocaleTimeString('ja-JP', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                    <StatusBadge status={o.status} />
+                      {o.diningOption && <DiningBadge option={o.diningOption} />}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs tabular-nums text-ink-sub">
+                        {new Date(o.createdAt).toLocaleTimeString('ja-JP', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                      <StatusBadge status={o.status} />
+                    </div>
                   </div>
-                </div>
 
-                <ul className="mt-3 flex-1 border-t border-ink-line">
-                  {o.items.map((i) => {
-                    const changed = changedOptions(i)
-                    return (
-                      <li key={itemKey(i)} className="border-b border-ink-line py-2.5">
-                        <div className="flex justify-between gap-2 text-base">
-                          <span className="font-bold">{i.name}</span>
-                          <span className="font-bold tabular-nums">× {i.quantity}</span>
-                        </div>
-                        {changed.length > 0 && (
-                          <div className="mt-1.5 flex flex-wrap gap-1.5">
-                            {changed.map((op) => (
-                              <OptionChip key={op.groupId} option={op} />
-                            ))}
+                  <ul className="mt-3 flex-1 border-t border-ink-line">
+                    {o.items.map((i) => {
+                      const changed = changedOptions(i)
+                      return (
+                        <li key={itemKey(i)} className="border-b border-ink-line py-2.5">
+                          <div className="flex justify-between gap-2 text-base">
+                            <span className="font-bold">{i.name}</span>
+                            <span className="font-bold tabular-nums">× {i.quantity}</span>
                           </div>
-                        )}
-                      </li>
-                    )
-                  })}
-                </ul>
+                          {changed.length > 0 && (
+                            <div className="mt-1.5 flex flex-wrap gap-1.5">
+                              {changed.map((op) => (
+                                <OptionChip key={op.groupId} option={op} />
+                              ))}
+                            </div>
+                          )}
+                        </li>
+                      )
+                    })}
+                  </ul>
 
-                <div className="mt-3 flex gap-2">
-                  {o.status === 'paid' && (
+                  <div className="mt-3 flex gap-2">
+                    {o.status === 'paid' && (
+                      <button
+                        type="button"
+                        onClick={() => setStatus(o.id, 'preparing')}
+                        className="h-12 flex-1 rounded-full border border-ink font-bold"
+                      >
+                        調理開始
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => setStatus(o.id, 'preparing')}
-                      className="h-12 flex-1 rounded-lg border border-ink font-bold"
+                      onClick={() => setStatus(o.id, 'completed')}
+                      className="h-12 flex-1 rounded-full bg-brand font-bold text-white"
                     >
-                      調理開始
+                      調理完了
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setStatus(o.id, 'completed')}
-                    className="h-12 flex-1 rounded-lg bg-ink font-bold text-white"
-                  >
-                    調理完了
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </main>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </main>
+      )}
     </div>
   )
 }

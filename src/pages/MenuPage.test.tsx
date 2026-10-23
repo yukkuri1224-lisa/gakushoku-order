@@ -5,6 +5,8 @@ import { MemoryRouter } from 'react-router-dom'
 import { MenuPage } from './MenuPage'
 import { useCartStore } from '@/store/cart'
 import { useDiningStore } from '@/store/dining'
+import { getSoldOutRepository } from '@/lib/soldOut'
+import { todayKey } from '@/lib/orders/types'
 
 // React の act() をテスト環境で有効にする
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -68,9 +70,21 @@ describe('メニュー画面のジャンル', () => {
     expect(chip(el, '軽食').getAttribute('aria-pressed')).toBe('true')
     expect(chip(el, 'すべて').getAttribute('aria-pressed')).toBe('false')
     expect(el.textContent).toContain('たこ焼き')
-    expect(el.textContent).not.toContain('醤油ラーメン')
+    expect(el.textContent).not.toContain('ラーメン')
 
     act(() => chip(el, 'すべて').click())
-    expect(el.textContent).toContain('醤油ラーメン')
+    expect(el.textContent).toContain('ラーメン')
+  })
+
+  it('売り切れの商品は「売り切れ」と出し、押せない', async () => {
+    await getSoldOutRepository().setSoldOut(todayKey(), 'takoyaki', true)
+    const el = render()
+    const card = [...el.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('たこ焼き'),
+    )!
+    expect(card.disabled).toBe(true)
+    expect(card.textContent).toContain('売り切れ')
+    await act(() => getSoldOutRepository().setSoldOut(todayKey(), 'takoyaki', false))
+    expect(card.disabled).toBe(false)
   })
 })

@@ -21,21 +21,21 @@ export function ReadyOverlay({
       aria-modal="true"
       aria-labelledby="ready-title"
       aria-describedby="ready-desc"
-      className="fixed inset-0 z-50 flex animate-fade-in flex-col bg-white"
+      className="fixed inset-0 z-50 flex animate-fade-in flex-col bg-cream"
     >
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-6 text-center">
-        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-success text-white">
+        <span className="flex h-20 w-20 animate-pop-in items-center justify-center rounded-full bg-success text-white shadow-card">
           <CheckIcon className="h-8 w-8" />
         </span>
         <h2 id="ready-title" className="mt-5 text-2xl font-bold">
           できあがりました
         </h2>
         <p className="mt-8 text-[13px] font-bold text-ink-sub">注文番号</p>
-        <p className="text-[72px] font-bold leading-none tabular-nums">
+        <p className="text-[88px] font-bold leading-none tabular-nums text-brand">
           {order.orderNumber}
         </p>
         {order.diningOption && (
-          <p className="mt-3 rounded-full border border-ink-line px-3 py-1 text-sm">
+          <p className="mt-3 rounded-full bg-white px-3 py-1 text-sm font-bold shadow-card">
             {DINING_LABEL[order.diningOption]}
           </p>
         )}
@@ -50,7 +50,7 @@ export function ReadyOverlay({
           ref={buttonRef}
           type="button"
           onClick={onClose}
-          className="h-[52px] w-full rounded-lg bg-ink text-base font-bold text-white"
+          className="h-14 w-full rounded-full bg-brand text-base font-bold text-white shadow-float"
         >
           わかりました
         </button>
