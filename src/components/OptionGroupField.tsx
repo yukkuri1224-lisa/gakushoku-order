@@ -4,14 +4,14 @@ import { CheckIcon } from '@/components/icons'
 import { moveRadioSelection } from '@/lib/radioKeys'
 
 // 選択肢グループ（1つ選ぶ）。2 列のカードで並べ、radiogroup / radio として読み上げられる。
-// 矢印キーで選択を移動できる（選択中のカードだけが Tab で止まる）。
+// 矢印キーで選択を移動できる（選択中のカードだけが Tab で止まる。未選択なら先頭のカード）。
 export function OptionGroupField({
   group,
   value,
   onChange,
 }: {
   group: OptionGroup
-  value: string
+  value: string | undefined // 初期値のないグループは未選択から始まる
   onChange: (choiceId: string) => void
 }) {
   const labelId = useId()
@@ -35,21 +35,22 @@ export function OptionGroupField({
           moveRadioSelection(
             e,
             group.choices.map((c) => c.id),
-            value,
+            value ?? null,
             onChange,
           )
         }
         className="mt-2 grid grid-cols-2 gap-2"
       >
-        {group.choices.map((c) => {
+        {group.choices.map((c, idx) => {
           const checked = c.id === value
+          const focusable = checked || (value === undefined && idx === 0)
           return (
             <button
               key={c.id}
               type="button"
               role="radio"
               aria-checked={checked}
-              tabIndex={checked ? 0 : -1}
+              tabIndex={focusable ? 0 : -1}
               onClick={() => onChange(c.id)}
               className={`flex min-h-14 items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left ${
                 checked ? 'border-ink ring-1 ring-ink' : 'border-ink-line'

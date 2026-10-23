@@ -5,6 +5,7 @@ import {
   changedOptions,
   defaultSelection,
   itemKey,
+  missingChoices,
   optionSummary,
   priceLabel,
   unitPrice,
@@ -13,6 +14,7 @@ import type { MenuItem } from '@/data/menu'
 
 const ramen = MENU.find((m) => m.id === 'ramen')!
 const curry = MENU.find((m) => m.id === 'curry')!
+const kake = MENU.find((m) => m.id === 'kake')!
 
 describe('defaultSelection', () => {
   it('カレーは 普通・福神漬けつける が初期値', () => {
@@ -120,5 +122,33 @@ describe('priceLabel', () => {
       ],
     }
     expect(priceLabel(rice)).toBe('¥100')
+  })
+})
+
+describe('初期値のない選択肢（うどん／そば）', () => {
+  it('初期状態では選ばれておらず、未選択として返る', () => {
+    expect(defaultSelection(kake)).toEqual({ size: 'regular' })
+    expect(missingChoices(kake, defaultSelection(kake)).map((g) => g.label)).toEqual([
+      '麺',
+    ])
+  })
+
+  it('選べば未選択はなくなる', () => {
+    expect(missingChoices(kake, { noodle: 'soba', size: 'regular' })).toEqual([])
+  })
+
+  it('選んだ麺は行の識別子に入り、厨房で必ず見えるよう「初期値から変えたもの」扱いになる', () => {
+    const line = buildOrderItem(kake, { noodle: 'soba', size: 'large' }, 1)
+    expect(line.key).toBe('kake|noodle:soba|size:large')
+    expect(line.price).toBe(490)
+    expect(optionSummary(line)).toBe('そば・大盛り')
+    expect(changedOptions(line).map((o) => o.choiceLabel)).toEqual(['そば', '大盛り'])
+  })
+
+  it('毎回選ぶ選択肢だけ mustChoose が付き、ほかは項目ごと省く（Firestore は undefined を拒否する）', () => {
+    const line = buildOrderItem(kake, { noodle: 'udon', size: 'regular' }, 1)
+    const [noodle, size] = line.options!
+    expect(noodle.mustChoose).toBe(true)
+    expect('mustChoose' in size).toBe(false)
   })
 })

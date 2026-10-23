@@ -1,5 +1,6 @@
 import { MENU } from '@/data/menu'
 import { itemKey } from '@/lib/menuOptions'
+import { MenuThumb } from '@/components/MenuThumb'
 import { QuantityStepper } from '@/components/QuantityStepper'
 import { OptionTags } from '@/components/OptionTags'
 import type { OrderItem } from '@/types/order'
@@ -20,16 +21,12 @@ export function CartList({
     <ul className="border-t border-ink-line">
       {items.map((i) => {
         const key = itemKey(i)
-        const image = MENU.find(
+        const menuItem = MENU.find(
           (m) => m.id === i.menuItemId || m.name === i.name,
-        )?.image
+        )
         return (
           <li key={key} className="flex gap-3 border-b border-ink-line py-4">
-            <span className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-surface">
-              {image && (
-                <img src={image} alt="" className="h-full w-full object-cover" />
-              )}
-            </span>
+            <MenuThumb item={menuItem} className="h-14 w-14" />
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
                 <p className="font-bold">{i.name}</p>

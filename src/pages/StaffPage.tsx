@@ -38,14 +38,17 @@ export function StaffPage() {
 }
 
 /**
- * 初期値から変えた選択肢の表示。
- * 追加料金のあるもの（大盛り）はアクセント、それ以外（福神漬けなし等）は注意色で目立たせる。
+ * 初期値から変えた選択肢・毎回選ぶ選択肢の表示。
+ * 追加料金のあるもの（大盛り）はアクセント、毎回選ぶもの（うどん／そば）は普通の枠、
+ * それ以外（福神漬けなし等）は注意色で目立たせる。
  */
 function OptionChip({ option }: { option: SelectedOption }) {
   const cls =
     option.priceDelta > 0
       ? 'bg-accent-bg text-accent-fg'
-      : 'border border-danger text-danger'
+      : option.mustChoose
+        ? 'border border-ink text-ink'
+        : 'border border-danger text-danger'
   return (
     <span className={`rounded px-2 py-0.5 text-sm font-bold ${cls}`}>
       {option.summaryLabel ?? option.choiceLabel}

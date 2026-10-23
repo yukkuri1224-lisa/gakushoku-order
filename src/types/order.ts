@@ -16,6 +16,7 @@ export interface SelectedOption {
   summaryLabel: string // カート・厨房での表示名（例: 大盛り / 福神漬けなし）
   priceDelta: number
   isDefault: boolean // 初期値のままなら true（厨房では表示しない）
+  mustChoose?: true // 初期値がなく毎回選ぶ選択肢（うどん／そば）。厨房では普通の表示にする
 }
 
 /**

@@ -301,7 +301,7 @@ export function CheckoutPage() {
             disabled={paying || !dining}
             onClick={handlePay}
             className={`flex h-[52px] w-full items-center justify-center rounded-lg text-base font-bold disabled:cursor-not-allowed ${
-              dining ? 'bg-paypay text-white disabled:opacity-60' : 'bg-surface text-ink-faint'
+              dining ? 'bg-paypay text-white disabled:opacity-60' : 'bg-surface text-ink-sub'
             }`}
           >
             {!dining ? (

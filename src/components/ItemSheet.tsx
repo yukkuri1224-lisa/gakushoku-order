@@ -3,17 +3,19 @@ import type { MenuItem } from '@/data/menu'
 import {
   buildOrderItem,
   defaultSelection,
-  priceLabel,
+  missingChoices,
   unitPrice,
   type Selection,
 } from '@/lib/menuOptions'
+import { MenuPrice, MenuThumb } from '@/components/MenuThumb'
 import { OptionGroupField } from '@/components/OptionGroupField'
 import { QuantityStepper } from '@/components/QuantityStepper'
 import { CloseIcon } from '@/components/icons'
 import type { OrderItem } from '@/types/order'
 
-// 商品詳細（下から開くハーフモーダル）。小さなサムネイルの見出し＋2 列の選択カード＋数量で、
+// 商品詳細（下から開くハーフモーダル）。見出し（画像のある商品は小さなサムネイルつき）＋2 列の選択カード＋数量で、
 // スクロールせずに 1 画面で選べるようにする。開くたびに選択肢は初期値・数量は 1 から始まる。
+// 初期値のない選択肢（うどん／そば）を選ぶまでは、ボタンに理由を出してカートに入れられない。
 // 親側で item が変わるたびに key を変えて再マウントする想定。
 export function ItemSheet({
   item,
@@ -46,6 +48,7 @@ export function ItemSheet({
   }, [onClose])
 
   const amount = unitPrice(item, selection) * quantity
+  const missing = missingChoices(item, selection)
 
   return (
     <div
@@ -66,19 +69,13 @@ export function ItemSheet({
         </div>
 
         <div className="flex shrink-0 items-start gap-3 border-b border-ink-line px-4 pb-4 pt-2">
-          <span className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-surface">
-            {item.image && (
-              <img src={item.image} alt="" className="h-full w-full object-cover" />
-            )}
-          </span>
+          <MenuThumb item={item} className="h-20 w-20" />
           <div className="min-w-0 flex-1 pt-1">
             <h2 className="text-lg font-bold text-ink">{item.name}</h2>
             {item.description && (
               <p className="mt-0.5 text-[13px] text-ink-sub">{item.description}</p>
             )}
-            <p className="mt-1 text-[15px] font-bold tabular-nums">
-              {priceLabel(item)}
-            </p>
+            <MenuPrice item={item} className="mt-1 block text-[15px] font-bold" />
           </div>
           <button
             type="button"
@@ -101,21 +98,35 @@ export function ItemSheet({
               }
             />
           ))}
-          <div className="mt-5 flex items-center justify-between border-t border-ink-line pt-4">
+          <div
+            className={`flex items-center justify-between pt-4 ${
+              item.optionGroups?.length ? 'mt-5 border-t border-ink-line' : ''
+            }`}
+          >
             <span className="text-[15px] font-bold">数量</span>
             <QuantityStepper value={quantity} onChange={setQuantity} />
           </div>
         </div>
 
         <div className="pb-safe shrink-0 border-t border-ink-line bg-white px-4 pt-3">
-          <button
-            type="button"
-            onClick={() => onAdd(buildOrderItem(item, selection, quantity))}
-            className="h-[52px] w-full rounded-lg bg-ink text-base font-bold text-white active:opacity-90"
-          >
-            カートに入れる・
-            <span className="tabular-nums">¥{amount.toLocaleString()}</span>
-          </button>
+          {missing.length > 0 ? (
+            <button
+              type="button"
+              disabled
+              className="h-[52px] w-full cursor-not-allowed rounded-lg bg-surface text-base font-bold text-ink-sub"
+            >
+              {missing[0].label}を選んでください
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onAdd(buildOrderItem(item, selection, quantity))}
+              className="h-[52px] w-full rounded-lg bg-ink text-base font-bold text-white active:opacity-90"
+            >
+              カートに入れる・
+              <span className="tabular-nums">¥{amount.toLocaleString()}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

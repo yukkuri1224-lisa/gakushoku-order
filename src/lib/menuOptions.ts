@@ -1,32 +1,50 @@
 // メニューの選択肢まわりの計算（副作用なし）。
 // 商品シート・カート・注文番号画面・厨房ボードがここを共有する。
-import type { MenuItem } from '@/data/menu'
+import type { MenuItem, OptionChoice, OptionGroup } from '@/data/menu'
 import type { OrderItem, SelectedOption } from '@/types/order'
 
 /** groupId -> choiceId */
 export type Selection = Record<string, string>
 
-/** 各グループの初期値を選んだ状態 */
+/** 各グループの初期値を選んだ状態（初期値のないグループは未選択のまま） */
 export function defaultSelection(item: MenuItem): Selection {
   const sel: Selection = {}
-  for (const g of item.optionGroups ?? []) sel[g.id] = g.defaultChoiceId
+  for (const g of item.optionGroups ?? []) {
+    if (g.defaultChoiceId !== undefined) sel[g.id] = g.defaultChoiceId
+  }
   return sel
 }
 
+function chosen(g: OptionGroup, sel: Selection): OptionChoice | undefined {
+  return (
+    g.choices.find((c) => c.id === sel[g.id]) ??
+    g.choices.find((c) => c.id === g.defaultChoiceId)
+  )
+}
+
+/** まだ選ばれていないグループ（初期値がなく、お客さんが選んでいないもの） */
+export function missingChoices(item: MenuItem, sel: Selection): OptionGroup[] {
+  return (item.optionGroups ?? []).filter((g) => chosen(g, sel) === undefined)
+}
+
+// 未選択のグループは含めない（カートに入れる前に missingChoices で止める）
 function selectedOptions(item: MenuItem, sel: Selection): SelectedOption[] {
-  return (item.optionGroups ?? []).map((g) => {
-    const choice =
-      g.choices.find((c) => c.id === sel[g.id]) ??
-      g.choices.find((c) => c.id === g.defaultChoiceId)!
-    return {
-      groupId: g.id,
-      groupLabel: g.label,
-      choiceId: choice.id,
-      choiceLabel: choice.label,
-      summaryLabel: choice.summaryLabel ?? choice.label,
-      priceDelta: choice.priceDelta,
-      isDefault: choice.id === g.defaultChoiceId,
-    }
+  return (item.optionGroups ?? []).flatMap((g) => {
+    const choice = chosen(g, sel)
+    if (!choice) return []
+    return [
+      {
+        groupId: g.id,
+        groupLabel: g.label,
+        choiceId: choice.id,
+        choiceLabel: choice.label,
+        summaryLabel: choice.summaryLabel ?? choice.label,
+        priceDelta: choice.priceDelta,
+        isDefault: choice.id === g.defaultChoiceId,
+        // Firestore は undefined を拒否するため、毎回選ぶグループのときだけ項目を持たせる
+        ...(g.defaultChoiceId === undefined ? { mustChoose: true } : {}),
+      },
+    ]
   })
 }
 
