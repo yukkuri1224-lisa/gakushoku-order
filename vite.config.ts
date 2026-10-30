@@ -9,7 +9,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      // 登録は src/main.tsx の registerSW で行う（新しい版が来たら自動で読み込み直す）
+      injectRegister: false,
       includeAssets: [
         'favicon.svg',
         'favicon-32.png',
