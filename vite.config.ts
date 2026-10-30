@@ -9,8 +9,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      // 登録は src/main.tsx の registerSW で行う（新しい版が来たら自動で読み込み直す）
-      injectRegister: false,
+      // 登録は src/main.tsx の registerSW で行う（新しい版が来たら自動で読み込み直す）。
+      // virtual:pwa-register を読み込むと 'auto' でも登録用のスクリプトは差し込まれない。
+      // ※false にすると skipWaiting / clientsClaim が付かず、新しい版が待機したまま残る
+      injectRegister: 'auto',
+      workbox: {
+        skipWaiting: true, // 新しい版をすぐ有効にする
+        clientsClaim: true, // 開いている画面もすぐ新しい版の管理下に置く
+      },
       includeAssets: [
         'favicon.svg',
         'favicon-32.png',
