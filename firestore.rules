@@ -1,8 +1,9 @@
 rules_version = '2';
 
 // ⚠ デモ用のオープンなルール（誰でも読み書き可）。
-//   学生画面・スタッフ画面のどちらもクライアントから直接 orders / dailyCounters / soldOut を
+//   学生画面・スタッフ画面のどちらもクライアントから直接 orders / dailyCounters を
 //   読み書きするため、デモでは全許可にしている。
+//   dailyCounters は日ごとの記録の置き場: 注文番号の採番 {YYYY-MM-DD} と、売り切れ soldOut-{YYYY-MM-DD}。
 //   実運用では必ず認証・権限制御（スタッフのみ status 更新可 等）を入れること。
 //
 // 反映方法（どちらでも可）:
@@ -20,10 +21,6 @@ service cloud.firestore {
       allow read, write: if true;
     }
     match /dailyCounters/{dateId} {
-      allow read, write: if true;
-    }
-    // 売り切れ（日付ごと。厨房ボードの「売り切れ」タブで書き換える）
-    match /soldOut/{dateId} {
       allow read, write: if true;
     }
   }

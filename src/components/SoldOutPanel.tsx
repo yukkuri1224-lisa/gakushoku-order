@@ -16,7 +16,7 @@ export function SoldOutPanel({ soldOut }: { soldOut: Set<string> }) {
     } catch (e) {
       console.warn(e)
       setError(
-        '保存できませんでした。Firestore のルールに soldOut の許可があるか確認してください（README「売り切れ」）。',
+        '保存できませんでした。通信状態を確かめて、もう一度押してください。',
       )
     }
   }
