@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { EntranceScreen } from '@/components/EntranceScreen'
 
 // 合言葉の入力画面（学生用の入口・スタッフ用で共通）。
@@ -12,8 +12,8 @@ export function PasscodeScreen({
   onSubmit,
   footer,
 }: {
-  eyebrow: string
-  title: string
+  eyebrow?: string
+  title: ReactNode
   description: string
   label: string
   submitLabel: string

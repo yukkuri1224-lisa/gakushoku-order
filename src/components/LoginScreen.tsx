@@ -35,8 +35,12 @@ export function LoginScreen({
 
   return (
     <EntranceScreen
-      eyebrow="LiSA校食堂"
-      title="学食モバイルオーダー"
+      title={
+        <>
+          LiSA校食堂の<wbr />
+          モバイルオーダー
+        </>
+      }
       description="並ばずに、スマホで注文・お支払い。できあがったらお知らせします。"
       footer={{ to: '/staff', label: '食堂スタッフの方はこちら' }}
     >

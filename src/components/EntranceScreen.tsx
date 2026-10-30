@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { BrandMark } from '@/components/icons'
+import { MealgoLogo } from '@/components/Logo'
 
 // 入口の画面（学生のログイン・合言葉、スタッフの合言葉で共通）。
-// 落ち着いた地に、食堂のマーク・見出し・入力やボタンだけを置く（オレンジは小さな印とボタンだけ）。
+// 落ち着いた地に、mealgo のロゴ・見出し・入力やボタンだけを置く（オレンジはロゴとボタンだけ）。
 export function EntranceScreen({
   eyebrow,
   title,
@@ -11,8 +11,8 @@ export function EntranceScreen({
   children,
   footer,
 }: {
-  eyebrow: string
-  title: string
+  eyebrow?: string
+  title: ReactNode
   description: string
   children: ReactNode
   footer: { to: string; label: string }
@@ -20,9 +20,11 @@ export function EntranceScreen({
   return (
     <div className="flex min-h-dvh flex-col bg-cream px-6">
       <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-12">
-        <BrandMark className="h-12 w-12" />
-        <p className="mt-5 text-sm font-bold text-ink-sub">{eyebrow}</p>
-        <h1 className="text-keep mt-1 text-[28px] font-bold leading-tight text-ink">{title}</h1>
+        <MealgoLogo className="w-48" />
+        {eyebrow && <p className="mt-8 text-sm font-bold text-ink-sub">{eyebrow}</p>}
+        <h1 className={`text-keep text-2xl font-bold leading-tight text-ink ${eyebrow ? 'mt-1' : 'mt-8'}`}>
+          {title}
+        </h1>
         <p className="text-keep mt-3 text-[15px] leading-relaxed text-ink-sub">{description}</p>
         <div className="mt-10">{children}</div>
       </main>

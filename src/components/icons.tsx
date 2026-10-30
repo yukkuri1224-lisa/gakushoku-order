@@ -150,18 +150,6 @@ export function BlockIcon({ className }: IconProps) {
   )
 }
 
-/** 食堂のマーク（ブランド色の角丸に白いどんぶり） */
-export function BrandMark({ className = 'h-8 w-8' }: IconProps) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`flex shrink-0 items-center justify-center rounded-[10px] bg-brand text-white ${className}`}
-    >
-      <EatInIcon className="h-[62%] w-[62%]" />
-    </span>
-  )
-}
-
 /** Google の「G」ロゴ（ログインボタン用。Google のブランド色のまま使う） */
 export function GoogleLogo({ className = 'h-5 w-5' }: IconProps) {
   return (

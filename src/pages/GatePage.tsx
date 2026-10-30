@@ -25,8 +25,12 @@ function PasscodeGate() {
   if (isGateOpen(GATE_KEY)) return <Navigate to="/start" replace />
   return (
     <PasscodeScreen
-      eyebrow="LiSA校食堂"
-      title="学食モバイルオーダー"
+      title={
+        <>
+          LiSA校食堂の<wbr />
+          モバイルオーダー
+        </>
+      }
       description="並ばずに、スマホで注文・お支払い。できあがったらお知らせします。"
       label="合言葉"
       submitLabel="はじめる"

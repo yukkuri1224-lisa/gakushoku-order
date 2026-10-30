@@ -6,7 +6,7 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { PasscodeScreen } from '@/components/PasscodeScreen'
 import { SoldOutPanel } from '@/components/SoldOutPanel'
 import { SoundButton } from '@/components/SoundButton'
-import { BrandMark } from '@/components/icons'
+import { MealgoWordmark } from '@/components/Logo'
 import { useSoldOut } from '@/hooks/useSoldOut'
 import { STAFF_KEY, STAFF_PASSWORD, isGateOpen, openGate } from '@/lib/gate'
 import {
@@ -23,7 +23,7 @@ export function StaffPage() {
   if (!authed) {
     return (
       <PasscodeScreen
-        eyebrow="LiSA校 学食"
+        eyebrow="LiSA校食堂"
         title="厨房ボード"
         description="スタッフ用の画面です。新しい注文が入ると通知音でお知らせします。"
         label="スタッフ用の合言葉"
@@ -112,9 +112,10 @@ function StaffBoard() {
     <div className="min-h-dvh bg-cream">
       <header className="sticky top-0 z-30 border-b border-ink-line/70 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
-          <div className="flex items-center gap-2.5">
-            <BrandMark />
-            <h1 className="text-base font-bold">厨房ボード</h1>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <MealgoWordmark className="h-6" />
+            <span aria-hidden="true" className="h-4 w-px shrink-0 bg-ink-line" />
+            <h1 className="truncate text-base font-bold">厨房ボード</h1>
           </div>
           <div className="flex items-center gap-2">
             <SoundButton />

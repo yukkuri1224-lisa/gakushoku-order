@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
-import { BackIcon, BrandMark, CartIcon } from '@/components/icons'
+import { BackIcon, CartIcon } from '@/components/icons'
+import { MealgoWordmark } from '@/components/Logo'
 
 // 画面上部の固定ヘッダー。
-//   back を渡すと左に戻るボタン、cartCount を渡すと右にカートボタン（/checkout へ）。
+//   back を渡すと左に戻るボタンと中央の見出し、渡さないと mealgo のロゴと小さな見出し（食堂の名前など）。
+//   cartCount を渡すと右にカートボタン（/checkout へ）。
 export function AppHeader({
   title,
   back,
@@ -16,25 +18,23 @@ export function AppHeader({
     <header className="sticky top-0 z-30 border-b border-ink-line/70 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-md items-center gap-2 px-2">
         {back ? (
-          <Link
-            to={back}
-            aria-label="戻る"
-            className="flex h-11 w-11 items-center justify-center rounded-lg text-ink"
-          >
-            <BackIcon />
-          </Link>
+          <>
+            <Link
+              to={back}
+              aria-label="戻る"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-ink"
+            >
+              <BackIcon />
+            </Link>
+            <h1 className="flex-1 truncate text-center text-base font-bold text-ink">{title}</h1>
+          </>
         ) : (
-          <span className="pl-2">
-            <BrandMark />
-          </span>
+          <div className="flex min-w-0 flex-1 items-center gap-2.5 pl-2">
+            <MealgoWordmark className="h-6" />
+            <span aria-hidden="true" className="h-4 w-px shrink-0 bg-ink-line" />
+            <h1 className="truncate text-[13px] font-bold text-ink-sub">{title}</h1>
+          </div>
         )}
-        <h1
-          className={`flex-1 truncate text-base font-bold text-ink ${
-            back ? 'text-center' : ''
-          }`}
-        >
-          {title}
-        </h1>
         {cartCount !== undefined ? (
           <Link
             to="/checkout"

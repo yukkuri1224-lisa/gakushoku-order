@@ -18,15 +18,18 @@ export default defineConfig({
         clientsClaim: true, // 開いている画面もすぐ新しい版の管理下に置く
       },
       includeAssets: [
-        'favicon.svg',
         'favicon-32.png',
+        'favicon-48.png',
         'apple-touch-icon.png',
         'icon-192.png',
         'icon-512.png',
+        'icon-512-maskable.png',
+        'brand/mealgo-logo.png',
+        'brand/mealgo-wordmark-96.png',
       ],
       manifest: {
-        name: 'LiSA校食堂 モバイルオーダー',
-        short_name: '学食オーダー',
+        name: 'mealgo（ミールゴー）',
+        short_name: 'mealgo',
         description: 'LiSA校食堂のモバイルオーダー',
         theme_color: '#ffffff',
         background_color: '#ffffff',
@@ -36,7 +39,8 @@ export default defineConfig({
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
           {
-            src: 'icon-512.png',
+            // Android が丸や角丸に切り抜いても欠けないよう、図柄を少し小さくした版
+            src: 'icon-512-maskable.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
