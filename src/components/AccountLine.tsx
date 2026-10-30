@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import { useLoginState } from '@/hooks/useLogin'
-import { loginMode, signOutGoogle } from '@/lib/auth'
+import { loginMode, signOutAccount } from '@/lib/auth'
 
-// ログイン中のアカウントとログアウト（Google ログインのときだけ出す）。
+// ログイン中のアカウントとログアウト（アカウントでのログインのときだけ出す）。
 export function AccountLine() {
-  return loginMode === 'google' ? <GoogleAccountLine /> : null
+  return loginMode === 'account' ? <GoogleAccountLine /> : null
 }
 
 function GoogleAccountLine() {
@@ -17,7 +17,7 @@ function GoogleAccountLine() {
       <button
         type="button"
         onClick={async () => {
-          await signOutGoogle()
+          await signOutAccount()
           navigate('/', { replace: true })
         }}
         className="h-11 shrink-0 px-1 font-bold text-ink underline underline-offset-4"

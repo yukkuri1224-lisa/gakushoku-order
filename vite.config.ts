@@ -16,6 +16,8 @@ export default defineConfig({
       workbox: {
         skipWaiting: true, // 新しい版をすぐ有効にする
         clientsClaim: true, // 開いている画面もすぐ新しい版の管理下に置く
+        // Firebase のログイン画面（/__/auth/…）とサーバー関数（/api/…）はアプリの画面に置き換えない
+        navigateFallbackDenylist: [/^\/__\//, /^\/api\//],
       },
       includeAssets: [
         'favicon-32.png',

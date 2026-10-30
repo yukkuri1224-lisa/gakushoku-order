@@ -3,7 +3,7 @@
 // 1つでも欠けていれば isFirebaseConfigured = false となり、
 // 同期層はローカル簡易同期（src/lib/orders/local.ts）に自動フォールバックする。
 import { initializeApp, type FirebaseApp } from 'firebase/app'
-import { getFirestore, type Firestore } from 'firebase/firestore'
+import { connectFirestoreEmulator, getFirestore, type Firestore } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -21,9 +21,14 @@ export const isFirebaseConfigured: boolean = Object.values(firebaseConfig).every
 let app: FirebaseApp | undefined
 let firestore: Firestore | undefined
 
+/** 手元で試すとき（npm run dev）だけ、Firebase のエミュレーターにつなぐ（本番のビルドには入らない） */
+export const useFirebaseEmulators: boolean =
+  import.meta.env.DEV && Boolean(import.meta.env.VITE_USE_FIREBASE_EMULATORS)
+
 if (isFirebaseConfigured) {
   app = initializeApp(firebaseConfig)
   firestore = getFirestore(app)
+  if (useFirebaseEmulators) connectFirestoreEmulator(firestore, '127.0.0.1', 8080)
 }
 
 // 未設定時は使われない（getOrderRepository がローカル実装を返すため）。

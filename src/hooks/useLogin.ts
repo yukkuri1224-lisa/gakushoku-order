@@ -1,4 +1,4 @@
-// Google ログインの状態（loginMode が google のときだけ使う）。
+// ログインの状態（loginMode が account のときだけ使う）。
 import { useSyncExternalStore } from 'react'
 import { getLoginState, subscribeLogin, type LoginState } from '@/lib/auth'
 

@@ -1,0 +1,14 @@
+{
+  "name": "mealgo-firestore-rules-tests",
+  "private": true,
+  "type": "module",
+  "description": "firestore.rules をエミュレーターで確かめるテスト（Java 21 以上が必要）",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore --project demo-mealgo --config ../firebase.json \"node --test rules.test.mjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "4.0.1",
+    "firebase": "11.10.0",
+    "firebase-tools": "14.24.0"
+  }
+}

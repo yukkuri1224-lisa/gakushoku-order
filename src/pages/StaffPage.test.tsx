@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter } from 'react-router-dom'
-import { StaffPage } from './StaffPage'
+import { StaffAccountGate, StaffPage } from './StaffPage'
+import type { LoginState } from '@/lib/auth'
 import { STAFF_KEY } from '@/lib/gate'
 import { getOrderRepository } from '@/lib/orders'
 import { MENU } from '@/data/menu'
@@ -102,5 +103,50 @@ describe('厨房ボード', () => {
 
     await act(async () => toggle().click())
     expect(toggle().getAttribute('aria-pressed')).toBe('false')
+  })
+})
+
+describe('厨房ボードの入口（スタッフのアカウント）', () => {
+  function renderGate(login: LoginState, onSignOut = async () => {}) {
+    container = document.createElement('div')
+    document.body.appendChild(container)
+    root = createRoot(container)
+    act(() =>
+      root!.render(
+        <MemoryRouter>
+          <StaffAccountGate login={login} onSignIn={async () => {}} onSignOut={onSignOut} />
+        </MemoryRouter>,
+      ),
+    )
+    return container
+  }
+
+  it('ログインしていなければ、メールアドレスとパスワードの画面（合言葉は使わない）', () => {
+    localStorage.setItem(STAFF_KEY, '1') // 昔の合言葉の記録があっても入れない
+    const el = renderGate({ status: 'signedOut' })
+    expect(el.querySelector('input[type="email"]')).not.toBeNull()
+    expect(el.textContent).not.toContain('合言葉')
+    expect(el.querySelectorAll('[role="tab"]')).toHaveLength(0)
+  })
+
+  it('学生のアカウントでは入れず、スタッフのアカウントでログインし直すよう伝える', () => {
+    const el = renderGate({ status: 'signedIn', email: 'a@gl.pen-kanagawa.ed.jp', uid: 's1', role: 'student' })
+    expect(el.querySelector('input[type="email"]')).not.toBeNull()
+    expect(el.textContent).toContain('学生のアカウントでログインしています')
+  })
+
+  it('スタッフでログインしていれば厨房ボード。ログイン中のアカウントとログアウトを出す', async () => {
+    let signedOut = false
+    const el = renderGate(
+      { status: 'signedIn', email: 'kitchen@example.com', uid: 'k1', role: 'staff' },
+      async () => {
+        signedOut = true
+      },
+    )
+    expect(el.querySelectorAll('[role="tab"]')).toHaveLength(2)
+    expect(el.textContent).toContain('kitchen@example.com')
+    const logout = [...el.querySelectorAll('button')].find((b) => b.textContent === 'ログアウト')!
+    await act(async () => logout.click())
+    expect(signedOut).toBe(true)
   })
 })

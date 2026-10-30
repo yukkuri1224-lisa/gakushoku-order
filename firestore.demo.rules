@@ -1,0 +1,20 @@
+rules_version = '2';
+
+// ⚠ デモ用のオープンなルール（だれでも読み書きできる）。合言葉のデモ（VITE_LOGIN_DOMAIN が空）のあいだだけ使う。
+//   合言葉はページの中に入っていて、だれでも調べられる。データベースも開いているので、守りにはならない。
+//   dailyCounters は日ごとの記録の置き場: 注文番号の採番 {YYYY-MM-DD} と、売り切れ soldOut-{YYYY-MM-DD}。
+//
+// 実際に使うときは、学校のアカウントでのログインに切り替えて、本番用の firestore.rules を公開する
+// （README「学校のアカウントでログインする（本番の設定）」）。
+//
+// 反映方法: Firebase コンソール → Firestore Database → ルール に、このファイルの中身を貼り付けて「公開」。
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /orders/{orderId} {
+      allow read, write: if true;
+    }
+    match /dailyCounters/{dateId} {
+      allow read, write: if true;
+    }
+  }
+}

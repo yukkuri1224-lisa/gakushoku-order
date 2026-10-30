@@ -7,6 +7,7 @@ export function buildOrderData(
   paymentMethod: PaymentMethod,
   orderNumber: number,
   now: number,
+  uid?: string,
 ): Omit<Order, 'id'> {
   return {
     orderNumber,
@@ -16,5 +17,6 @@ export function buildOrderData(
     paymentMethod,
     createdAt: now,
     ...(draft.diningOption ? { diningOption: draft.diningOption } : {}),
+    ...(uid ? { uid } : {}),
   }
 }

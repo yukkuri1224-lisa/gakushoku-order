@@ -28,6 +28,7 @@ import {
   todayKey,
 } from './types'
 import { buildOrderData } from './buildOrderData'
+import { currentUid } from '@/lib/auth'
 
 export class FirestoreOrderRepository implements OrderRepository {
   constructor(private db: Firestore) {}
@@ -55,7 +56,8 @@ export class FirestoreOrderRepository implements OrderRepository {
       const next = current + 1
       tx.set(counterRef, { count: next, date: todayKey() }, { merge: true })
 
-      tx.set(orderRef, buildOrderData(draft, paymentMethod, next, Date.now()))
+      // アカウントでのログインのときは、注文した学生の UID を入れる（ルールが本人の UID か確かめる）
+      tx.set(orderRef, buildOrderData(draft, paymentMethod, next, Date.now(), currentUid()))
       return next
     })
 
@@ -95,18 +97,21 @@ export class FirestoreOrderRepository implements OrderRepository {
     await updateDoc(ref, patch)
   }
 
-  // 預けた中身は orders/pending-{支払いID} に置く（公開中のルールで読み書きできる場所）。
+  // 預けた中身は orders/pending-{支払いID} に置く。
   // status が paid / preparing ではないので、厨房ボードや「前に◯件」には出ない。
+  // アカウントでのログインのときは UID を入れ、預けた本人だけが読み・消せる（firestore.rules）。
   private pendingRef(paymentId: string) {
     return doc(this.db, 'orders', `pending-${paymentId}`)
   }
 
   async savePendingDraft(paymentId: string, draft: OrderDraft): Promise<void> {
     // Firestore は undefined を拒否するため、JSON を通して undefined の項目を落とす
+    const uid = currentUid()
     await setDoc(this.pendingRef(paymentId), {
       status: 'awaiting_payment',
       draft: JSON.parse(JSON.stringify(draft)) as OrderDraft,
       createdAt: Date.now(),
+      ...(uid ? { uid } : {}),
     })
   }
 

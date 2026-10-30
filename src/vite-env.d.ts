@@ -4,7 +4,8 @@
 interface ImportMetaEnv {
   readonly VITE_ACCESS_PASSWORD?: string
   readonly VITE_STAFF_PASSWORD?: string
-  readonly VITE_LOGIN_DOMAIN?: string // 例: gl.pen-kanagawa.ed.jp（設定すると Google ログインに切り替わる）
+  readonly VITE_LOGIN_DOMAIN?: string // 例: gl.pen-kanagawa.ed.jp（設定すると学校のアカウント・スタッフのアカウントでのログインに切り替わる）
+  readonly VITE_USE_FIREBASE_EMULATORS?: string // 手元の npm run dev だけ: Firebase のエミュレーターにつなぐ
   readonly VITE_PAYMENT_MODE?: 'mock' | 'paypay'
   readonly VITE_FIREBASE_API_KEY?: string
   readonly VITE_FIREBASE_AUTH_DOMAIN?: string

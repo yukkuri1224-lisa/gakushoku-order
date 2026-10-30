@@ -52,7 +52,7 @@ export function ReadyOverlay({
           onClick={onClose}
           className="h-14 w-full rounded-full bg-brand text-base font-bold text-white shadow-float"
         >
-          わかりました
+          受け取りました
         </button>
       </div>
     </div>

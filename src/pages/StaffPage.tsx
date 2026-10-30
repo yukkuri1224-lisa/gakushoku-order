@@ -4,10 +4,14 @@ import { getOrderRepository } from '@/lib/orders'
 import { changedOptions, itemKey } from '@/lib/menuOptions'
 import { StatusBadge } from '@/components/StatusBadge'
 import { PasscodeScreen } from '@/components/PasscodeScreen'
+import { ProcessingScreen } from '@/components/ProcessingScreen'
+import { StaffLoginScreen } from '@/components/StaffLoginScreen'
 import { SoldOutPanel } from '@/components/SoldOutPanel'
 import { SoundButton } from '@/components/SoundButton'
 import { MealgoWordmark } from '@/components/Logo'
+import { useLoginState } from '@/hooks/useLogin'
 import { useSoldOut } from '@/hooks/useSoldOut'
+import { loginMode, signInStaff, signOutAccount, type LoginState } from '@/lib/auth'
 import { STAFF_KEY, STAFF_PASSWORD, isGateOpen, openGate } from '@/lib/gate'
 import {
   DINING_SHORT,
@@ -18,7 +22,43 @@ import {
 } from '@/types/order'
 import { playChime } from '@/lib/sound'
 
+// 厨房ボードの入口。アカウントでのログイン（VITE_LOGIN_DOMAIN あり）なら、スタッフのアカウントだけ。
+// 合言葉のデモでは、スタッフ用の合言葉。
 export function StaffPage() {
+  return loginMode === 'account' ? <StaffAccount /> : <StaffPasscodeGate />
+}
+
+function StaffAccount() {
+  const login = useLoginState()
+  return <StaffAccountGate login={login} onSignIn={signInStaff} onSignOut={signOutAccount} />
+}
+
+export function StaffAccountGate({
+  login,
+  onSignIn,
+  onSignOut,
+}: {
+  login: LoginState
+  onSignIn: (email: string, password: string) => Promise<void>
+  onSignOut: () => Promise<void>
+}) {
+  if (login.status === 'loading') return <ProcessingScreen title="読み込み中…" description="" />
+  if (login.status === 'signedIn' && login.role === 'staff') {
+    return <StaffBoard account={{ email: login.email, onSignOut }} />
+  }
+  return (
+    <StaffLoginScreen
+      onSignIn={onSignIn}
+      notice={
+        login.status === 'signedIn'
+          ? '学生のアカウントでログインしています。厨房ボードを使うには、スタッフのアカウントでログインし直してください。'
+          : undefined
+      }
+    />
+  )
+}
+
+function StaffPasscodeGate() {
   const [authed, setAuthed] = useState(() => isGateOpen(STAFF_KEY))
   if (!authed) {
     return (
@@ -29,7 +69,7 @@ export function StaffPage() {
         label="スタッフ用の合言葉"
         submitLabel="ひらく"
         onSubmit={(pw) => {
-          if (pw !== STAFF_PASSWORD) return false
+          if (!STAFF_PASSWORD || pw !== STAFF_PASSWORD) return false
           openGate(STAFF_KEY)
           setAuthed(true)
           return true
@@ -76,7 +116,12 @@ function DiningBadge({ option }: { option: DiningOption }) {
   )
 }
 
-function StaffBoard() {
+function StaffBoard({
+  account,
+}: {
+  /** アカウントでのログインのとき: ログイン中のアカウントとログアウト */
+  account?: { email: string; onSignOut: () => Promise<void> }
+}) {
   const [orders, setOrders] = useState<Order[]>([])
   const [tab, setTab] = useState<'orders' | 'soldOut'>('orders')
   const soldOut = useSoldOut()
@@ -240,6 +285,19 @@ function StaffBoard() {
             </div>
           )}
         </main>
+      )}
+
+      {account && (
+        <footer className="pb-safe mx-auto flex max-w-5xl items-center justify-center gap-2 px-4 pt-4 text-[13px] text-ink-sub">
+          <span className="min-w-0 truncate">ログイン中：{account.email}</span>
+          <button
+            type="button"
+            onClick={() => void account.onSignOut()}
+            className="h-11 shrink-0 px-1 font-bold text-ink underline underline-offset-4"
+          >
+            ログアウト
+          </button>
+        </footer>
       )}
     </div>
   )

@@ -1,22 +1,21 @@
 import { Navigate, useNavigate } from 'react-router-dom'
-import { LoginScreen } from '@/components/LoginScreen'
 import { PasscodeScreen } from '@/components/PasscodeScreen'
-import { ProcessingScreen } from '@/components/ProcessingScreen'
-import { useLoginState } from '@/hooks/useLogin'
-import { LOGIN_DOMAIN, loginMode, signInWithGoogle } from '@/lib/auth'
+import { RequireLogin } from '@/components/RequireLogin'
+import { loginMode } from '@/lib/auth'
 import { ACCESS_PASSWORD, GATE_KEY, isGateOpen, openGate } from '@/lib/gate'
 
 // 学生の入口。VITE_LOGIN_DOMAIN があれば学校の Google アカウントでログイン、なければ合言葉。
 export function GatePage() {
-  return loginMode === 'google' ? <GoogleGate /> : <PasscodeGate />
+  return loginMode === 'account' ? <AccountGate /> : <PasscodeGate />
 }
 
-function GoogleGate() {
-  const login = useLoginState()
-  if (login.status === 'loading') return <ProcessingScreen title="読み込み中…" description="" />
-  // ログイン済みの端末は、そのまま最初の画面（ご利用方法の選択）へ
-  if (login.status === 'signedIn') return <Navigate to="/start" replace />
-  return <LoginScreen domain={LOGIN_DOMAIN} onSignIn={signInWithGoogle} />
+// ログイン済みの端末は、そのまま最初の画面（ご利用方法の選択）へ
+function AccountGate() {
+  return (
+    <RequireLogin>
+      <Navigate to="/start" replace />
+    </RequireLogin>
+  )
 }
 
 function PasscodeGate() {
@@ -35,7 +34,7 @@ function PasscodeGate() {
       label="合言葉"
       submitLabel="はじめる"
       onSubmit={(pw) => {
-        if (pw !== ACCESS_PASSWORD) return false
+        if (!ACCESS_PASSWORD || pw !== ACCESS_PASSWORD) return false
         openGate(GATE_KEY)
         navigate('/start')
         return true

@@ -44,6 +44,7 @@ export interface Order {
   createdAt: number // epoch ミリ秒
   completedAt?: number
   diningOption?: DiningOption // 利用方法の選択を入れる前の注文には無い
+  uid?: string // 注文した学生（アカウントでのログインのとき）。合言葉のデモの注文には無い
 }
 
 /** 決済前のカート確定情報（注文作成の元データ） */

@@ -62,3 +62,31 @@ describe('ログイン画面（学校の Google アカウント）', () => {
     expect(el.querySelector('[role="alert"]')).toBeNull()
   })
 })
+
+describe('ログイン画面のお知らせ', () => {
+  it('お知らせ（PayPay から戻ったとき等）を出す', () => {
+    container = document.createElement('div')
+    document.body.appendChild(container)
+    root = createRoot(container)
+    act(() =>
+      root!.render(
+        <MemoryRouter>
+          <LoginScreen
+            domain="gl.pen-kanagawa.ed.jp"
+            onSignIn={async () => {}}
+            notice="ログインすると、注文の登録を続けます。"
+          />
+        </MemoryRouter>,
+      ),
+    )
+    expect(container.textContent).toContain('ログインすると、注文の登録を続けます。')
+  })
+
+  it('停止されたアカウント・通信の失敗も伝える', async () => {
+    const el = render(async () => {
+      throw new LoginError('network')
+    })
+    await act(async () => googleButton(el).click())
+    expect(el.querySelector('[role="alert"]')?.textContent).toContain('インターネット')
+  })
+})
