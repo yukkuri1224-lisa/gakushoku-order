@@ -46,7 +46,8 @@ export default async function handler(req, res) {
       merchantPaymentId,
       amount: { amount, currency: 'JPY' },
       codeType: 'ORDER_QR',
-      orderDescription: '学食モバイルオーダー',
+      // 支払い画面の上に出る店名・ロゴは PayPay 側の加盟店情報で、ここでは変えられない（README 参照）
+      orderDescription: 'mealgo（LiSA校食堂）',
       redirectUrl,
       redirectType: 'WEB_LINK',
     }

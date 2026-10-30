@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { itemKey } from '@/lib/menuOptions'
 import { useActiveOrders, useCompletionAlert, useOrder } from '@/hooks/useOrders'
 import { AppHeader } from '@/components/AppHeader'
@@ -76,10 +76,11 @@ function Row({ label, value }: { label: string; value: string }) {
 
 export function OrderStatusPage() {
   const { orderId } = useParams<{ orderId: string }>()
+  const navigate = useNavigate()
   const { order, loading } = useOrder(orderId)
   const active = useActiveOrders()
   const watched = useMemo(() => (order ? [order] : []), [order])
-  const { ready, dismiss } = useCompletionAlert(watched)
+  const { ready } = useCompletionAlert(watched)
 
   if (loading) {
     return (
@@ -194,16 +195,18 @@ export function OrderStatusPage() {
           </p>
         </Section>
 
+        {/* できあがったら受け取って終わりなので、ホーム（ご利用方法の選択）へ。調理中は追加の注文へ */}
         <div className="px-4 pt-5">
           <Link
-            to="/menu"
+            to={done ? '/' : '/menu'}
             className="flex h-14 w-full items-center justify-center rounded-full bg-white font-bold text-brand shadow-card"
           >
-            追加で注文する
+            {done ? 'ホームに戻る' : '追加で注文する'}
           </Link>
         </div>
       </main>
-      {ready && <ReadyOverlay order={ready} onClose={dismiss} />}
+      {/* 「わかりました」を押したら、そのままホームへ戻る */}
+      {ready && <ReadyOverlay order={ready} onClose={() => navigate('/')} />}
     </div>
   )
 }
