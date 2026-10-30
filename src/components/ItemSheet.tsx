@@ -79,7 +79,7 @@ export function ItemSheet({
             <img
               src={item.image}
               alt=""
-              className={`mx-auto h-44 w-44 object-contain pt-4 ${soldOut ? 'opacity-40 grayscale' : ''}`}
+              className={`mx-auto h-44 w-44 object-contain pt-4 [@media(max-height:700px)]:h-28 [@media(max-height:700px)]:w-28 ${soldOut ? 'opacity-40 grayscale' : ''}`}
             />
           )}
           <button

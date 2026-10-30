@@ -4,8 +4,11 @@
 import {
   type Firestore,
   collection,
+  deleteDoc,
   doc,
+  getDoc,
   onSnapshot,
+  setDoc,
   query,
   runTransaction,
   updateDoc,
@@ -90,5 +93,29 @@ export class FirestoreOrderRepository implements OrderRepository {
     const patch: Partial<Order> = { status }
     if (status === 'completed') patch.completedAt = Date.now()
     await updateDoc(ref, patch)
+  }
+
+  // 預けた中身は orders/pending-{支払いID} に置く（公開中のルールで読み書きできる場所）。
+  // status が paid / preparing ではないので、厨房ボードや「前に◯件」には出ない。
+  private pendingRef(paymentId: string) {
+    return doc(this.db, 'orders', `pending-${paymentId}`)
+  }
+
+  async savePendingDraft(paymentId: string, draft: OrderDraft): Promise<void> {
+    // Firestore は undefined を拒否するため、JSON を通して undefined の項目を落とす
+    await setDoc(this.pendingRef(paymentId), {
+      status: 'awaiting_payment',
+      draft: JSON.parse(JSON.stringify(draft)) as OrderDraft,
+      createdAt: Date.now(),
+    })
+  }
+
+  async getPendingDraft(paymentId: string): Promise<OrderDraft | null> {
+    const snap = await getDoc(this.pendingRef(paymentId))
+    return (snap.data()?.draft as OrderDraft | undefined) ?? null
+  }
+
+  async deletePendingDraft(paymentId: string): Promise<void> {
+    await deleteDoc(this.pendingRef(paymentId))
   }
 }

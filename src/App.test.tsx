@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter } from 'react-router-dom'
@@ -61,3 +61,15 @@ describe('最初の画面の振り分け', () => {
     expect(renderAt('/start')).toContain('合言葉')
   })
 })
+
+describe('PayPay から戻ったとき', () => {
+  it('合言葉を入れていないブラウザに戻ってきても、入口に戻さず支払いの確認を続ける', () => {
+    // 支払いの確認（/api/paypay/status）が終わらない間の表示を見る
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
+    const text = renderAt('/checkout?pp=return&mpid=mp-other-browser')
+    expect(text).not.toContain('合言葉')
+    expect(text).toContain('支払いを確認しています')
+    vi.unstubAllGlobals()
+  })
+})
+

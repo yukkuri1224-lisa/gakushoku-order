@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { AppHeader } from '@/components/AppHeader'
 import { ActiveOrders } from '@/components/ActiveOrders'
 import { AccountLine } from '@/components/AccountLine'
+import { InstallGuide } from '@/components/InstallGuide'
 import { ChevronRightIcon, DiningIcon } from '@/components/icons'
 import { useDiningStore } from '@/store/dining'
 import { greeting } from '@/lib/greeting'
@@ -85,6 +86,8 @@ export function DiningPage() {
         <p className="mt-6 text-[13px] text-ink-sub">
           価格は店内・お持ち帰りとも同じです。
         </p>
+
+        <InstallGuide className="mt-8" />
 
         <div className="mt-10 text-center">
           <AccountLine />

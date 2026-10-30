@@ -74,28 +74,18 @@ export function MenuPage() {
       <main className="mx-auto max-w-md">
         {/* あいさつと、いまのご利用方法 */}
         <section className="px-4 pt-4">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-bright to-brand px-5 pb-5 pt-5 text-white">
-            <p className="text-sm font-bold text-white/85">{greeting()}</p>
-            <p className="text-keep mt-1 text-[22px] font-bold leading-snug">
-              今日は、
-              <br />
-              なにを食べる？
-            </p>
+          <div className="rounded-2xl bg-white px-5 py-4 shadow-card">
+            <p className="text-[13px] font-bold text-ink-sub">{greeting()}</p>
+            <p className="mt-0.5 text-xl font-bold leading-snug">今日は、なにを食べる？</p>
             <Link
               to="/start"
-              aria-label="ご利用方法を変更"
-              className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-full bg-white/20 pl-3 pr-2 text-[13px] font-bold backdrop-blur"
+              aria-label={`ご利用方法を変更（いまは${dining ? DINING_LABEL[dining] : '未選択'}）`}
+              className="mt-3 inline-flex h-9 items-center gap-1 rounded-full bg-cream pl-3 pr-2 text-[13px] font-bold text-ink"
             >
               {dining && <DiningIcon option={dining} className="h-4 w-4" />}
               {dining ? DINING_LABEL[dining] : 'ご利用方法'}
-              <span className="font-normal text-white/80">・変更</span>
-              <ChevronRightIcon className="h-4 w-4" />
+              <ChevronRightIcon className="h-4 w-4 text-ink-sub" />
             </Link>
-            <img
-              src="/menu/illust/ramen.jpg"
-              alt=""
-              className="pointer-events-none absolute -bottom-7 -right-5 h-36 w-36 rounded-full border-4 border-white/40 object-cover"
-            />
           </div>
         </section>
 

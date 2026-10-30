@@ -39,3 +39,18 @@ describe('LocalOrderRepository.createOrder', () => {
     expect(a.id).not.toBe(b.id)
   })
 })
+
+describe('支払い前に預ける注文の中身（PayPay から別のブラウザに戻ったとき用）', () => {
+  it('預けた中身を、支払いIDで取り出せる。消したら取り出せない', async () => {
+    const repo = new LocalOrderRepository()
+    await repo.savePendingDraft('mp-9', { ...draft, diningOption: 'takeout' })
+    expect(await repo.getPendingDraft('mp-9')).toEqual({ ...draft, diningOption: 'takeout' })
+    await repo.deletePendingDraft('mp-9')
+    expect(await repo.getPendingDraft('mp-9')).toBeNull()
+  })
+
+  it('預けていない支払いIDは null', async () => {
+    expect(await new LocalOrderRepository().getPendingDraft('nothing')).toBeNull()
+  })
+})
+

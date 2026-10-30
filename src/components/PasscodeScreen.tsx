@@ -46,7 +46,7 @@ export function PasscodeScreen({
           autoFocus
           aria-invalid={error}
           aria-describedby={error ? 'passcode-error' : undefined}
-          className={`mt-2 h-14 w-full rounded-2xl border bg-white px-4 text-base outline-none transition-colors focus:border-brand focus:ring-1 focus:ring-brand ${
+          className={`mt-2 h-14 w-full rounded-xl border bg-white px-4 text-base outline-none transition-colors focus:border-ink ${
             error ? 'border-danger' : 'border-ink-line'
           }`}
         />
@@ -57,7 +57,7 @@ export function PasscodeScreen({
         )}
         <button
           type="submit"
-          className="mt-4 h-14 w-full rounded-full bg-brand text-base font-bold text-white shadow-float active:opacity-90"
+          className="mt-4 h-14 w-full rounded-full bg-brand text-base font-bold text-white active:opacity-90"
         >
           {submitLabel}
         </button>

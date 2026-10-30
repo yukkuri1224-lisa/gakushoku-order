@@ -60,7 +60,7 @@ export function CartList({
                 <button
                   type="button"
                   onClick={() => onRemove(key)}
-                  className="h-11 px-2 text-sm text-ink-sub underline underline-offset-4"
+                  className="h-11 shrink-0 whitespace-nowrap px-2 text-sm text-ink-sub underline underline-offset-4"
                 >
                   削除
                 </button>

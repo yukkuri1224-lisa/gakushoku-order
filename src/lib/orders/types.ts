@@ -33,6 +33,17 @@ export interface OrderRepository {
 
   /** 注文の状態を更新（preparing / completed）。 */
   updateStatus(id: string, status: OrderStatus): Promise<void>
+
+  /**
+   * PayPay へ移る前に、注文の中身を支払いIDで預ける。
+   * スマホでは PayPay アプリから「ふだんのブラウザ」に戻ることがあり、注文を始めたブラウザ
+   * （やホーム画面のアプリ）のカートが見えない。預けておけば、戻った先でも注文を作れる。
+   */
+  savePendingDraft(paymentId: string, draft: OrderDraft): Promise<void>
+  /** 預けた注文の中身を取り出す（なければ null） */
+  getPendingDraft(paymentId: string): Promise<OrderDraft | null>
+  /** 注文を作ったあと、預けた中身を消す */
+  deletePendingDraft(paymentId: string): Promise<void>
 }
 
 /** 採番キー用の YYYY-MM-DD（ローカルタイム） */

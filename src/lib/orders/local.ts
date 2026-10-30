@@ -21,6 +21,7 @@ import {
 import { buildOrderData } from './buildOrderData'
 
 const ORDERS_KEY = 'gakushoku.orders'
+const PENDING_PREFIX = 'gakushoku.pendingDraft.'
 const COUNTER_PREFIX = 'gakushoku.counter.'
 const CHANNEL_NAME = 'gakushoku-orders'
 
@@ -136,5 +137,22 @@ export class LocalOrderRepository implements OrderRepository {
       }
       this.writeAll(all)
     }
+  }
+
+  async savePendingDraft(paymentId: string, draft: OrderDraft): Promise<void> {
+    localStorage.setItem(PENDING_PREFIX + paymentId, JSON.stringify(draft))
+  }
+
+  async getPendingDraft(paymentId: string): Promise<OrderDraft | null> {
+    try {
+      const raw = localStorage.getItem(PENDING_PREFIX + paymentId)
+      return raw ? (JSON.parse(raw) as OrderDraft) : null
+    } catch {
+      return null
+    }
+  }
+
+  async deletePendingDraft(paymentId: string): Promise<void> {
+    localStorage.removeItem(PENDING_PREFIX + paymentId)
   }
 }

@@ -34,13 +34,13 @@ export function SoldOutPanel({ soldOut }: { soldOut: Set<string> }) {
       {MENU_CATEGORIES.map((cat) => (
         <section key={cat} className="pt-5">
           <h2 className="pb-2 text-base font-bold">{cat}</h2>
-          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {MENU.filter((m) => m.category === cat).map((m) => {
               const out = soldOut.has(m.id)
               return (
                 <li
                   key={m.id}
-                  className={`flex items-center gap-3 rounded-2xl p-2.5 pr-3 shadow-card ${
+                  className={`flex min-w-0 items-center gap-3 rounded-2xl p-2.5 pr-3 shadow-card ${
                     out ? 'bg-danger/5' : 'bg-white'
                   }`}
                 >

@@ -10,13 +10,12 @@ import { cartCount, cartTotal, useCartStore } from '@/store/cart'
 import { useDiningStore } from '@/store/dining'
 import { useSoldOut } from '@/hooks/useSoldOut'
 import {
-  clearPendingPayPayId,
   confirmPayPayPayment,
   getPaymentProvider,
   getPendingPayPayId,
+  paymentMode,
 } from '@/lib/payment'
-import { getOrderRepository } from '@/lib/orders'
-import { rememberOrder } from '@/lib/myOrders'
+import { registerPaidOrder } from '@/lib/registerPaidOrder'
 import { toUserMessage } from '@/lib/errors'
 import { DINING_LABEL, type PaymentMethod } from '@/types/order'
 
@@ -46,7 +45,7 @@ export function CheckoutPage() {
   const [paying, setPaying] = useState(false)
   // PayPay から戻った直後（?pp=return）は最初から確認画面を出す
   const [confirming, setConfirming] = useState(
-    () => new URLSearchParams(window.location.search).get('pp') === 'return',
+    () => new URLSearchParams(location.search).get('pp') === 'return',
   )
   const [registering, setRegistering] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -62,31 +61,12 @@ export function CheckoutPage() {
       ? 'ご利用方法を選んでください'
       : null
 
-  /**
-   * 支払い済みの注文を登録して注文番号画面へ。
-   * orderId を注文IDにするので、同じIDで何度呼んでも注文は1件だけ。
-   */
+  /** 支払い済みの注文を登録して注文番号画面へ（同じIDで何度呼んでも注文は1件だけ） */
   async function registerOrder(orderId: string, method: PaymentMethod) {
-    const current = useCartStore.getState().items
-    if (current.length === 0) {
-      // 登録済みの後に戻ってきた等。注文番号画面で該当の注文を探す
-      navigate(`/order/${orderId}`, { replace: true })
-      return
-    }
     setRegistering(true)
     try {
-      const { id } = await getOrderRepository().createOrder(
-        {
-          items: current,
-          total: cartTotal(current),
-          diningOption: useDiningStore.getState().option ?? undefined,
-        },
-        method,
-        orderId,
-      )
-      rememberOrder(id, Date.now())
-      if (method === 'paypay') clearPendingPayPayId()
-      useCartStore.getState().clear()
+      // 中身が見つからないとき（登録済みの後に戻ってきた等）は、注文番号画面で該当の注文を探す
+      const id = (await registerPaidOrder(orderId, method)) ?? orderId
       navigate(`/order/${id}`, { replace: true })
     } catch (e) {
       setFailed({ orderId, method, message: toUserMessage(e) })
@@ -127,6 +107,21 @@ export function CheckoutPage() {
     }
     // 初回マウント時のみ
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // PayPay の画面から「戻る」で戻った・ホーム画面のアプリに戻ったときに、
+  // 支払いボタンが「処理中…」のまま止まらないようにする
+  useEffect(() => {
+    if (paymentMode !== 'paypay') return
+    const reset = () => {
+      if (document.visibilityState === 'visible') setPaying(false)
+    }
+    window.addEventListener('pageshow', reset)
+    document.addEventListener('visibilitychange', reset)
+    return () => {
+      window.removeEventListener('pageshow', reset)
+      document.removeEventListener('visibilitychange', reset)
+    }
   }, [])
 
   const handlePay = async () => {

@@ -173,3 +173,13 @@ export function GoogleLogo({ className = 'h-5 w-5' }: IconProps) {
     </svg>
   )
 }
+
+/** 共有（iPhone の共有ボタンの形：四角から上向きの矢印） */
+export function ShareIcon({ className }: IconProps) {
+  return (
+    <Icon className={className}>
+      <path d="M8.5 9H7a1.5 1.5 0 0 0-1.5 1.5v8A1.5 1.5 0 0 0 7 20h10a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 17 9h-1.5" />
+      <path d="M12 14V3.5M8.5 7L12 3.5 15.5 7" />
+    </Icon>
+  )
+}

@@ -44,7 +44,7 @@ export function LoginScreen({
         type="button"
         onClick={signIn}
         disabled={busy}
-        className="flex h-14 w-full items-center justify-center gap-3 rounded-full border border-ink-line bg-white text-base font-bold text-ink shadow-card disabled:opacity-60"
+        className="flex h-14 w-full items-center justify-center gap-3 rounded-full border border-ink-line bg-white text-base font-bold text-ink disabled:opacity-60"
       >
         <GoogleLogo />
         {busy ? 'ログインしています…' : 'Google でログイン'}
