@@ -1,3 +1,5 @@
+// ⚠ これは Firebase コンソールに貼るファイルではありません（ルールを確かめるためのテストです）。
+//    Firebase コンソールの「ルール」に貼るのは、リポジトリのいちばん上にある firestore.rules です。
 // firestore.rules（本番用ルール）のテスト。Firestore エミュレーターの上で、
 // 「通すもの」と「断るもの」を実際に読み書きして確かめる。実行方法は README.md。
 import { after, before, beforeEach, describe, it } from 'node:test'
