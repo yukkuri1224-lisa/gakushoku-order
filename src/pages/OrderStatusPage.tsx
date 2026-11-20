@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { itemKey } from '@/lib/menuOptions'
+import { formatPickup } from '@/lib/pickup'
 import { useActiveOrders, useCompletionAlert, useOrder } from '@/hooks/useOrders'
 import { AppHeader } from '@/components/AppHeader'
 import { OptionTags } from '@/components/OptionTags'
@@ -149,6 +150,11 @@ export function OrderStatusPage() {
               <Row label="ご利用方法" value={DINING_LABEL[order.diningOption]} />
             )}
             <Row label="受け取り場所" value="LiSA校食堂" />
+            <Row
+              label="受け取り時間"
+              value={order.pickupAt ? `${formatPickup(order.pickupAt)}（予約）` : 'できしだい'}
+            />
+            {order.orderer === 'teacher' && <Row label="注文する人" value="先生" />}
             <Row label="注文日時" value={formatDateTime(order.createdAt)} />
           </dl>
         </section>

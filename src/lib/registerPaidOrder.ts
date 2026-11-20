@@ -4,8 +4,9 @@
 import { getOrderRepository } from '@/lib/orders'
 import { clearPendingPayPayId } from '@/lib/payment'
 import { rememberOrder } from '@/lib/myOrders'
-import { cartTotal, useCartStore } from '@/store/cart'
-import { useDiningStore } from '@/store/dining'
+import { currentDraft } from '@/lib/orderDraft'
+import { useCartStore } from '@/store/cart'
+import { useOrderPrefs } from '@/store/orderPrefs'
 import type { OrderDraft, PaymentMethod } from '@/types/order'
 
 /** 登録した注文のIDを返す。中身が見つからない（登録済みのあとに戻ってきた等）ときは null */
@@ -16,16 +17,7 @@ export async function registerPaidOrder(
   const repo = getOrderRepository()
   const pending =
     method === 'paypay' ? await repo.getPendingDraft(orderId).catch(() => null) : null
-  const current = useCartStore.getState().items
-  const draft: OrderDraft | null =
-    pending ??
-    (current.length > 0
-      ? {
-          items: current,
-          total: cartTotal(current),
-          diningOption: useDiningStore.getState().option ?? undefined,
-        }
-      : null)
+  const draft: OrderDraft | null = pending ?? currentDraft()
   if (!draft) return null
 
   const { id } = await repo.createOrder(draft, method, orderId)
@@ -35,5 +27,7 @@ export async function registerPaidOrder(
     void repo.deletePendingDraft(orderId).catch(() => {})
   }
   useCartStore.getState().clear()
+  // 受け取り時間の予約は注文ごと（注文する人は端末に覚えておく）
+  useOrderPrefs.getState().setPickupAt(null)
   return id
 }

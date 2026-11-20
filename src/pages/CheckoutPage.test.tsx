@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter } from 'react-router-dom'
@@ -7,6 +7,7 @@ import { MENU } from '@/data/menu'
 import { buildOrderItem, defaultSelection } from '@/lib/menuOptions'
 import { useCartStore } from '@/store/cart'
 import { useDiningStore } from '@/store/dining'
+import { useOrderPrefs } from '@/store/orderPrefs'
 import { getSoldOutRepository } from '@/lib/soldOut'
 import { todayKey } from '@/lib/orders/types'
 
@@ -42,9 +43,11 @@ beforeEach(() => {
   localStorage.clear()
   useCartStore.setState({ items: [buildOrderItem(ramen, defaultSelection(ramen), 2)] })
   useDiningStore.setState({ option: null })
+  useOrderPrefs.setState({ pickupAt: null, orderer: 'student' })
 })
 
 afterEach(() => {
+  vi.useRealTimers()
   act(() => root?.unmount())
   container?.remove()
   root = null
@@ -88,5 +91,51 @@ describe('注文内容の確認', () => {
       '売り切れ',
     )
     await act(() => getSoldOutRepository().setSoldOut(todayKey(), 'ramen', false))
+  })
+})
+
+describe('受け取り時間の予約', () => {
+  const radio = (el: HTMLElement, text: string) =>
+    [...el.querySelectorAll('[role="radio"]')].find((b) => b.textContent?.includes(text)) as HTMLButtonElement
+
+  it('最初は「できしだい」。「時間を指定」を選ぶと、今日の選べる時間から選べる', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 10, 20, 11, 7))
+    useDiningStore.setState({ option: 'eat_in' })
+    const el = render()
+    expect(radio(el, 'できしだい').getAttribute('aria-checked')).toBe('true')
+    act(() => radio(el, '時間を指定').click())
+    const select = el.querySelector('select[aria-label="受け取り時間"]') as HTMLSelectElement
+    expect(select).not.toBeNull()
+    expect(select.options[0].textContent).toBe('11:30')
+    expect(useOrderPrefs.getState().pickupAt).toBe(new Date(2026, 10, 20, 11, 30).getTime())
+    expect(findButton(el, 'で支払う')!.disabled).toBe(false)
+  })
+
+  it('選んでいた時間が過ぎていたら、選び直すまで支払えない', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 10, 20, 13, 0))
+    useDiningStore.setState({ option: 'eat_in' })
+    useOrderPrefs.setState({ pickupAt: new Date(2026, 10, 20, 12, 30).getTime() })
+    const el = render()
+    expect(findButton(el, '受け取り時間を選び直してください')!.disabled).toBe(true)
+  })
+
+  it('閉まったあとは「時間を指定」を選べず、そう伝える', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 10, 20, 20, 0))
+    const el = render()
+    expect(radio(el, '時間を指定').disabled).toBe(true)
+    expect(el.textContent).toContain('今日の予約の受付は終わりました')
+  })
+})
+
+describe('注文する人', () => {
+  it('先生はラジオボタンで「先生」を選んで注文できる（端末に覚えておく）', () => {
+    const el = render()
+    const teacher = [...el.querySelectorAll('[role="radio"]')].find((b) => b.textContent === '先生') as HTMLButtonElement
+    act(() => teacher.click())
+    expect(useOrderPrefs.getState().orderer).toBe('teacher')
+    expect(teacher.getAttribute('aria-checked')).toBe('true')
   })
 })

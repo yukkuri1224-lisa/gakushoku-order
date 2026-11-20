@@ -1,4 +1,5 @@
 import { queueAhead } from '@/lib/orderProgress'
+import { formatPickup } from '@/lib/pickup'
 import type { Order } from '@/types/order'
 
 // 待ち状況のひとこと。根拠のない待ち時間は出さず、前の件数で伝える。
@@ -12,6 +13,14 @@ export function WaitingNote({
 }) {
   if (order.status === 'preparing') {
     return <p className="mt-5 text-center text-sm font-bold">ただいまお作りしています</p>
+  }
+  if (order.status === 'paid' && order.pickupAt) {
+    return (
+      <p className="mt-5 text-center text-sm font-bold">
+        <span className="text-lg tabular-nums">{formatPickup(order.pickupAt)}</span>{' '}
+        に受け取りの予約です。時間が近づいたら調理を始めます
+      </p>
+    )
   }
   if (order.status !== 'paid' || active === null) return null
   const ahead = queueAhead(order, active)

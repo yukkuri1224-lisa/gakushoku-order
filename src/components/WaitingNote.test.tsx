@@ -50,4 +50,12 @@ describe('WaitingNote', () => {
   it('調理中なら「ただいまお作りしています」', () => {
     expect(text(order('x', 'preparing', 1), null)).toContain('ただいまお作りしています')
   })
+
+  it('受け取り時間を予約した注文は、前の件数ではなく予約の時間を伝える', () => {
+    const reserved: Order = { ...mine, pickupAt: new Date(2026, 10, 20, 12, 30).getTime() }
+    const t = text(reserved, [order('a', 'paid', 1), reserved])
+    expect(t).toContain('12:30')
+    expect(t).toContain('予約')
+    expect(t).not.toContain('件の注文')
+  })
 })

@@ -17,6 +17,8 @@ export function buildOrderData(
     paymentMethod,
     createdAt: now,
     ...(draft.diningOption ? { diningOption: draft.diningOption } : {}),
+    ...(draft.pickupAt ? { pickupAt: draft.pickupAt } : {}),
+    ...(draft.orderer === 'teacher' ? { orderer: 'teacher' as const } : {}),
     ...(uid ? { uid } : {}),
   }
 }

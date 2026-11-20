@@ -8,6 +8,10 @@ import { Section } from '@/components/Section'
 import { CheckIcon, StoreIcon } from '@/components/icons'
 import { cartCount, cartTotal, useCartStore } from '@/store/cart'
 import { useDiningStore } from '@/store/dining'
+import { useOrderPrefs } from '@/store/orderPrefs'
+import { RadioCards } from '@/components/RadioCards'
+import { currentDraft } from '@/lib/orderDraft'
+import { formatPickup, isPickupValid, pickupSlots } from '@/lib/pickup'
 import { useSoldOut } from '@/hooks/useSoldOut'
 import {
   confirmPayPayPayment,
@@ -40,7 +44,20 @@ export function CheckoutPage() {
   const remove = useCartStore((s) => s.remove)
   const dining = useDiningStore((s) => s.option)
   const setDining = useDiningStore((s) => s.setOption)
+  const pickupAt = useOrderPrefs((s) => s.pickupAt)
+  const setPickupAt = useOrderPrefs((s) => s.setPickupAt)
+  const orderer = useOrderPrefs((s) => s.orderer)
+  const setOrderer = useOrderPrefs((s) => s.setOrderer)
   const soldOut = useSoldOut()
+
+  // 選べる受け取り時間は時刻とともに変わるので、30 秒ごとに読み直す
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 30 * 1000)
+    return () => window.clearInterval(id)
+  }, [])
+  const slots = pickupSlots(now)
+  const pickupValid = pickupAt === null || isPickupValid(pickupAt, now)
 
   const [paying, setPaying] = useState(false)
   // PayPay から戻った直後（?pp=return）は最初から確認画面を出す
@@ -59,7 +76,9 @@ export function CheckoutPage() {
     ? '売り切れの商品を削除してください'
     : !dining
       ? 'ご利用方法を選んでください'
-      : null
+      : !pickupValid
+        ? '受け取り時間を選び直してください'
+        : null
 
   /** 支払い済みの注文を登録して注文番号画面へ（同じIDで何度呼んでも注文は1件だけ） */
   async function registerOrder(orderId: string, method: PaymentMethod) {
@@ -130,11 +149,9 @@ export function CheckoutPage() {
     setPaying(true)
     try {
       // 決済（mock=モーダル / paypay=リダイレクト）。VITE_PAYMENT_MODE で切替
-      const result = await getPaymentProvider().pay(total, {
-        items,
-        total,
-        diningOption: dining,
-      })
+      const draft = currentDraft()
+      if (!draft) return
+      const result = await getPaymentProvider().pay(total, draft)
       // ※ paypay はここでリダイレクトするため以降は実行されない（戻った後に useEffect で処理）
       if (!result.success) {
         setPaying(false)
@@ -238,6 +255,63 @@ export function CheckoutPage() {
           )}
         </Section>
 
+        <Section title="受け取り時間" titleId="pickup-label">
+          <RadioCards
+            labelledBy="pickup-label"
+            value={pickupAt === null ? 'asap' : 'reserve'}
+            options={[
+              { id: 'asap', label: 'できしだい' },
+              { id: 'reserve', label: '時間を指定', disabled: slots.length === 0 && pickupAt === null },
+            ]}
+            onChange={(id) => setPickupAt(id === 'asap' ? null : (slots[0] ?? null))}
+          />
+          {pickupAt !== null && (
+            <div className="mt-3">
+              <select
+                aria-label="受け取り時間"
+                value={pickupValid ? String(pickupAt) : ''}
+                onChange={(e) => setPickupAt(Number(e.target.value))}
+                className="h-12 w-full rounded-xl border border-ink-line bg-white px-3 text-base font-bold tabular-nums"
+              >
+                {!pickupValid && (
+                  <option value="" disabled>
+                    選んでください
+                  </option>
+                )}
+                {slots.map((t) => (
+                  <option key={t} value={String(t)}>
+                    {formatPickup(t)}
+                  </option>
+                ))}
+              </select>
+              {pickupValid ? (
+                <p className="mt-2 text-[13px] text-ink-sub">
+                  今日の {formatPickup(pickupAt)} に受け取れるように作ります。
+                </p>
+              ) : (
+                <p role="alert" className="mt-2 text-[13px] font-bold text-danger">
+                  選んでいた時間（{formatPickup(pickupAt)}）は過ぎました。選び直すか、「できしだい」にしてください。
+                </p>
+              )}
+            </div>
+          )}
+          {slots.length === 0 && pickupAt === null && (
+            <p className="mt-2 text-[13px] text-ink-sub">今日の予約の受付は終わりました。</p>
+          )}
+        </Section>
+
+        <Section title="注文する人" titleId="orderer-label">
+          <RadioCards
+            labelledBy="orderer-label"
+            value={orderer}
+            options={[
+              { id: 'student', label: '生徒' },
+              { id: 'teacher', label: '先生' },
+            ]}
+            onChange={setOrderer}
+          />
+        </Section>
+
         <Section title="お支払い方法">
           <div className="flex h-14 items-center justify-between rounded-xl border border-brand bg-brand-soft px-4 ring-1 ring-brand">
             <span className="text-[17px] font-bold italic text-paypay">PayPay</span>
@@ -293,7 +367,8 @@ export function CheckoutPage() {
         <div className="mx-auto max-w-md">
           <div className="flex items-baseline justify-between gap-3 pb-2 text-[13px]">
             <span className="min-w-0 truncate text-ink-sub">
-              LiSA校食堂（{dining ? DINING_LABEL[dining] : 'ご利用方法 未選択'}）
+              LiSA校食堂（{dining ? DINING_LABEL[dining] : 'ご利用方法 未選択'}
+              {pickupAt !== null && pickupValid ? `・${formatPickup(pickupAt)} 受け取り` : ''}）
             </span>
             <span className="shrink-0">
               合計（税込）

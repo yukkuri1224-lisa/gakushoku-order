@@ -136,6 +136,32 @@ describe('厨房ボードの料理の出し方', () => {
   })
 })
 
+describe('厨房ボードの予約と先生', () => {
+  it('予約の注文に「予約 12:30」、先生の注文に「先生」と出し、予約は受け取りの15分前の順に並べる', async () => {
+    const repo = getOrderRepository()
+    const now = Date.now()
+    const later = new Date(now + 3 * 60 * 60 * 1000)
+    later.setMinutes(30, 0, 0)
+    await repo.createOrder({ items, total: 480, pickupAt: later.getTime() }, 'mock')
+    await repo.createOrder({ items, total: 480, orderer: 'teacher' }, 'mock')
+
+    container = document.createElement('div')
+    document.body.appendChild(container)
+    root = createRoot(container)
+    act(() =>
+      root!.render(
+        <MemoryRouter>
+          <StaffPage />
+        </MemoryRouter>,
+      ),
+    )
+    const cards = container.querySelectorAll('article')
+    expect(cards).toHaveLength(2)
+    expect(cards[0].textContent).toContain('先生')
+    expect(cards[1].textContent).toContain(`予約 ${later.getHours()}:30`)
+  })
+})
+
 describe('厨房ボードの入口（スタッフのアカウント）', () => {
   function renderGate(login: LoginState, onSignOut = async () => {}) {
     container = document.createElement('div')

@@ -23,6 +23,7 @@ import {
   type SelectedOption,
 } from '@/types/order'
 import { playChime } from '@/lib/sound'
+import { dueAt, formatPickup } from '@/lib/pickup'
 
 // 厨房ボードの入口。アカウントでのログイン（VITE_LOGIN_DOMAIN あり）なら、スタッフのアカウントだけ。
 // 合言葉のデモでは、スタッフ用の合言葉。
@@ -249,7 +250,7 @@ function StaffBoard({
             </p>
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {orders.map((o) => (
+              {[...orders].sort((a, b) => dueAt(a) - dueAt(b)).map((o) => (
                 <article
                   key={o.id}
                   className="flex flex-col rounded-2xl bg-white p-4 shadow-card"
@@ -274,6 +275,18 @@ function StaffBoard({
                       <StatusBadge status={o.status} />
                     </div>
                   </div>
+                  {(o.pickupAt || o.orderer === 'teacher') && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {o.pickupAt && (
+                        <span className="rounded bg-accent-bg px-2 py-1 text-sm font-bold tabular-nums text-accent-fg">
+                          予約 {formatPickup(o.pickupAt)}
+                        </span>
+                      )}
+                      {o.orderer === 'teacher' && (
+                        <span className="rounded border border-ink px-2 py-1 text-sm font-bold">先生</span>
+                      )}
+                    </div>
+                  )}
 
                   <div className="mt-3 flex-1">
                     <OrderLines items={o.items.filter((i) => !isHotSnackLine(i))} />

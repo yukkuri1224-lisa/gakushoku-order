@@ -7,6 +7,9 @@ export type PaymentMethod = 'mock' | 'paypay'
 /** ご利用方法（店内で食べる / お持ち帰り） */
 export type DiningOption = 'eat_in' | 'takeout'
 
+/** 注文する人。先生のときだけ注文に記録する（生徒は項目なし） */
+export type Orderer = 'student' | 'teacher'
+
 /** 注文の1行で選ばれた選択肢（例: サイズ=大盛り） */
 export interface SelectedOption {
   groupId: string
@@ -45,6 +48,8 @@ export interface Order {
   completedAt?: number
   diningOption?: DiningOption // 利用方法の選択を入れる前の注文には無い
   uid?: string // 注文した学生（アカウントでのログインのとき）。合言葉のデモの注文には無い
+  pickupAt?: number // 受け取り時間の予約（epoch ミリ秒）。できしだいなら無い
+  orderer?: 'teacher' // 先生の注文。生徒なら無い
 }
 
 /** 決済前のカート確定情報（注文作成の元データ） */
@@ -52,6 +57,8 @@ export interface OrderDraft {
   items: OrderItem[]
   total: number
   diningOption?: DiningOption
+  pickupAt?: number
+  orderer?: 'teacher'
 }
 
 // status -> 日本語ラベル（画面表示で共通利用）

@@ -72,7 +72,7 @@ service cloud.firestore {
     }
 
     function validNewOrder(d) {
-      return d.keys().hasOnly(['orderNumber', 'items', 'total', 'status', 'paymentMethod', 'createdAt', 'diningOption', 'uid'])
+      return d.keys().hasOnly(['orderNumber', 'items', 'total', 'status', 'paymentMethod', 'createdAt', 'diningOption', 'uid', 'pickupAt', 'orderer'])
         && d.keys().hasAll(['orderNumber', 'items', 'total', 'status', 'paymentMethod', 'createdAt', 'uid'])
         && d.uid == request.auth.uid
         && d.status == 'paid'
@@ -81,7 +81,10 @@ service cloud.firestore {
         && d.total is int && d.total >= 0
         && d.createdAt is int
         && d.items is list && d.items.size() > 0 && d.items.size() <= 50
-        && (!('diningOption' in d) || d.diningOption in ['eat_in', 'takeout']);
+        && (!('diningOption' in d) || d.diningOption in ['eat_in', 'takeout'])
+        // 受け取り時間の予約（epoch ミリ秒）と、先生の注文
+        && (!('pickupAt' in d) || d.pickupAt is int)
+        && (!('orderer' in d) || d.orderer == 'teacher');
     }
 
     function validPending(d) {

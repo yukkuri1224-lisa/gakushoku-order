@@ -151,6 +151,13 @@ describe('学生（学校の Google アカウント）', () => {
     await assertFails(setDoc(doc(f, 'orders', 'mp-5'), noUid))
   })
 
+  it('受け取り時間の予約と、先生の注文を記録できる（おかしな値は断る）', async () => {
+    const f = db.student()
+    await assertSucceeds(createOrderLikeApp(f, 'mp-r', 'stu1', { pickupAt: 1_790_000_900_000, orderer: 'teacher' }))
+    await assertFails(createOrderLikeApp(f, 'mp-x', 'stu1', { pickupAt: '12:30' }))
+    await assertFails(createOrderLikeApp(f, 'mp-y', 'stu1', { orderer: 'principal' }))
+  })
+
   it('注文番号は 1 ずつしか進められない', async () => {
     const f = db.student()
     await assertFails(setDoc(doc(f, 'dailyCounters', DAY), { count: 100, date: DAY }))
