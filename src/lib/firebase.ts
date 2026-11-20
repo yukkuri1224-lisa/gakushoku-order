@@ -5,13 +5,25 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app'
 import { connectFirestoreEmulator, getFirestore, type Firestore } from 'firebase/firestore'
 
+/** 値の前後の空白・引用符・カンマを除く（Firebase コンソールからのコピーで付きやすい） */
+function clean(v: string | undefined): string | undefined {
+  return v?.trim().replace(/^["']+|["',]+$/g, '').trim()
+}
+
+/** authDomain はホスト名だけにする（http:// や末尾の / が付いているとログインの窓が開けない） */
+export function toHost(v: string | undefined): string | undefined {
+  return clean(v)
+    ?.replace(/^[a-z]+:\/\//i, '')
+    .replace(/\/.*$/, '')
+}
+
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: clean(import.meta.env.VITE_FIREBASE_API_KEY),
+  authDomain: toHost(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN),
+  projectId: clean(import.meta.env.VITE_FIREBASE_PROJECT_ID),
+  storageBucket: toHost(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET),
+  messagingSenderId: clean(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID),
+  appId: clean(import.meta.env.VITE_FIREBASE_APP_ID),
 }
 
 export const isFirebaseConfigured: boolean = Object.values(firebaseConfig).every(
