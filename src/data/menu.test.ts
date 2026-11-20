@@ -1,14 +1,16 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { MENU, MENU_CATEGORIES } from './menu'
+import { HOT_SNACK, MEAL_CATEGORIES, MENU, MENU_CATEGORIES } from './menu'
 
 // テストはプロジェクトのルートで動く
 const publicDir = join(process.cwd(), 'public')
 
 describe('メニューのデータ', () => {
-  it('ジャンルは 定食・麺類・カレー・軽食 の順で、どれにも商品がある', () => {
-    expect(MENU_CATEGORIES).toEqual(['定食', '麺類', 'カレー', '軽食'])
+  it('食堂メニュー（定食・麺類・カレー）とホットスナックに分かれ、どれにも商品がある', () => {
+    expect(MEAL_CATEGORIES).toEqual(['定食', '麺類', 'カレー'])
+    expect(HOT_SNACK).toBe('ホットスナック')
+    expect(MENU_CATEGORIES).toEqual(['定食', '麺類', 'カレー', 'ホットスナック'])
     for (const cat of MENU_CATEGORIES) {
       expect(MENU.some((m) => m.category === cat)).toBe(true)
     }
@@ -76,5 +78,21 @@ describe('メニューのデータ', () => {
     for (const id of ['lunch_a', 'lunch_b', 'lunch_c', 'dinner_set']) {
       expect(MENU.find((m) => m.id === id)!.description).toBeUndefined()
     }
+  })
+
+  it('麺類はすべて「ネギ」を選べて、初期は「あり」。抜くと厨房に「ネギ抜き」と出る', () => {
+    const noodles = MENU.filter((m) => m.category === '麺類')
+    expect(noodles).toHaveLength(7)
+    for (const m of noodles) {
+      const negi = m.optionGroups?.find((g) => g.id === 'negi')
+      expect(negi?.defaultChoiceId).toBe('with')
+      expect(negi?.choices.find((c) => c.id === 'without')?.summaryLabel).toBe('ネギ抜き')
+      expect(negi?.choices.every((c) => c.priceDelta === 0)).toBe(true)
+    }
+    expect(MENU.filter((m) => m.category !== '麺類').some((m) => m.optionGroups?.some((g) => g.id === 'negi'))).toBe(false)
+  })
+
+  it('検索用の読み（ひらがな）がすべての商品にある', () => {
+    for (const m of MENU) expect(m.yomi).toMatch(/^[ぁ-ゖー・ ]+$/)
   })
 })

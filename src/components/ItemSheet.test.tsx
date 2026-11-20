@@ -57,6 +57,6 @@ describe('商品シート（うどん・そば）', () => {
     expect(cta.textContent).toContain('¥340')
     act(() => cta.click())
     expect(onAdd).toHaveBeenCalledOnce()
-    expect(onAdd.mock.calls[0][0].key).toBe('kake|noodle:soba|size:regular')
+    expect(onAdd.mock.calls[0][0].key).toBe('kake|noodle:soba|size:regular|negi:with')
   })
 })

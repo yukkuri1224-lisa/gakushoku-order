@@ -84,7 +84,7 @@ export function DiningPage() {
         </div>
 
         <p className="mt-6 text-[13px] text-ink-sub">
-          価格は店内・お持ち帰りとも同じです。
+          お持ち帰りは、容器代（20円）込みの価格になります。
         </p>
 
         <InstallGuide className="mt-8" />

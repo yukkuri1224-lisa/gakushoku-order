@@ -106,6 +106,36 @@ describe('厨房ボード', () => {
   })
 })
 
+describe('厨房ボードの料理の出し方', () => {
+  it('ホットスナックは料理と分けて「ホットスナック」の下に出し、ネギ抜き・上の容器ありを目立たせる', async () => {
+    const kake = MENU.find((m) => m.id === 'kake')!
+    const takoyaki = MENU.find((m) => m.id === 'takoyaki')!
+    const noodle = buildOrderItem(kake, { noodle: 'udon', size: 'regular', negi: 'without' }, 1)
+    const snack = buildOrderItem(takoyaki, {}, 2)
+    await getOrderRepository().createOrder(
+      { items: [snack, noodle], total: noodle.price + snack.price * 2, diningOption: 'eat_in' },
+      'mock',
+    )
+
+    container = document.createElement('div')
+    document.body.appendChild(container)
+    root = createRoot(container)
+    act(() =>
+      root!.render(
+        <MemoryRouter>
+          <StaffPage />
+        </MemoryRouter>,
+      ),
+    )
+
+    const card = container.querySelector('article')!
+    const text = card.textContent!
+    expect(text).toContain('ネギ抜き')
+    expect(text.indexOf('かけうどん・そば')).toBeLessThan(text.indexOf('ホットスナック'))
+    expect(text.indexOf('ホットスナック')).toBeLessThan(text.indexOf('たこ焼き'))
+  })
+})
+
 describe('厨房ボードの入口（スタッフのアカウント）', () => {
   function renderGate(login: LoginState, onSignOut = async () => {}) {
     container = document.createElement('div')

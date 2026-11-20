@@ -127,7 +127,7 @@ describe('priceLabel', () => {
 
 describe('初期値のない選択肢（うどん／そば）', () => {
   it('初期状態では選ばれておらず、未選択として返る', () => {
-    expect(defaultSelection(kake)).toEqual({ size: 'regular' })
+    expect(defaultSelection(kake)).toEqual({ size: 'regular', negi: 'with' })
     expect(missingChoices(kake, defaultSelection(kake)).map((g) => g.label)).toEqual([
       '麺',
     ])
@@ -139,9 +139,9 @@ describe('初期値のない選択肢（うどん／そば）', () => {
 
   it('選んだ麺は行の識別子に入り、厨房で必ず見えるよう「初期値から変えたもの」扱いになる', () => {
     const line = buildOrderItem(kake, { noodle: 'soba', size: 'large' }, 1)
-    expect(line.key).toBe('kake|noodle:soba|size:large')
+    expect(line.key).toBe('kake|noodle:soba|size:large|negi:with')
     expect(line.price).toBe(490)
-    expect(optionSummary(line)).toBe('そば・大盛り')
+    expect(optionSummary(line)).toBe('そば・大盛り・ネギあり')
     expect(changedOptions(line).map((o) => o.choiceLabel)).toEqual(['そば', '大盛り'])
   })
 

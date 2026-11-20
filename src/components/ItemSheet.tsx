@@ -17,14 +17,17 @@ import type { OrderItem } from '@/types/order'
 // 開くたびに選択肢は初期値・数量は 1 から始まる。
 // 初期値のない選択肢（うどん／そば）を選ぶまで、また売り切れのあいだは、ボタンに理由を出してカートに入れられない。
 // 親側で item が変わるたびに key を変えて再マウントする想定。
+// note: 価格の補足（お持ち帰りの容器代込み、など）。
 export function ItemSheet({
   item,
   soldOut = false,
+  note,
   onClose,
   onAdd,
 }: {
   item: MenuItem
   soldOut?: boolean
+  note?: string
   onClose: () => void
   onAdd: (line: OrderItem) => void
 }) {
@@ -106,6 +109,7 @@ export function ItemSheet({
               <p className="mt-1 text-sm text-ink-sub">{item.description}</p>
             )}
             <MenuPrice item={item} className="mt-2 block text-lg font-bold text-brand" />
+            {note && <p className="text-keep mt-1 text-xs leading-relaxed text-ink-sub">{note}</p>}
           </div>
 
           {(item.optionGroups ?? []).map((g) => (

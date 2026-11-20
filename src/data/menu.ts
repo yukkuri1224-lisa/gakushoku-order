@@ -32,6 +32,7 @@ export interface MenuItem {
   image?: string // 画像はイメージ（いただいたイラスト、またはいらすとや）
   badge?: string // 画像に重ねる小さなラベル（例: 日替わり）
   unit?: string // 価格の単位（例: 1こ）。一覧・商品シートで価格の後ろに出す
+  yomi?: string // 検索用の読み（ひらがな）。「からあげ」で「唐揚カレー」も見つかるように
   optionGroups?: OptionGroup[]
 }
 
@@ -67,8 +68,29 @@ const FUKUJINZUKE: OptionGroup = {
   ],
 }
 
-/** ジャンルの表示順（メニュー画面の絞り込みもこの順） */
-export const MENU_CATEGORIES: string[] = ['定食', '麺類', 'カレー', '軽食']
+const NEGI: OptionGroup = {
+  id: 'negi',
+  label: 'ネギ',
+  required: false,
+  defaultChoiceId: 'with',
+  choices: [
+    { id: 'with', label: 'あり', priceDelta: 0, summaryLabel: 'ネギあり' },
+    { id: 'without', label: '抜き', priceDelta: 0, summaryLabel: 'ネギ抜き' },
+  ],
+}
+
+/** ホットスナック（券売機とは別の枠。メニュー画面でも別のタブで出す） */
+export const HOT_SNACK = 'ホットスナック'
+
+/** 食堂メニュー（券売機の料理）のジャンル。メニュー画面の絞り込みもこの順 */
+export const MEAL_CATEGORIES: string[] = ['定食', '麺類', 'カレー']
+
+/** すべてのジャンルの表示順（売り切れの切り替えなど） */
+export const MENU_CATEGORIES: string[] = [...MEAL_CATEGORIES, HOT_SNACK]
+
+export function isHotSnack(item: Pick<MenuItem, 'category'>): boolean {
+  return item.category === HOT_SNACK
+}
 
 const IMG = '/menu/irasutoya'
 const ILLUST = '/menu/illust'
@@ -78,6 +100,7 @@ export const MENU: MenuItem[] = [
   {
     id: 'lunch_a',
     name: 'ランチA',
+    yomi: 'らんちえー',
     price: 510,
     category: '定食',
     image: `${IMG}/set_meal.jpg`,
@@ -86,6 +109,7 @@ export const MENU: MenuItem[] = [
   {
     id: 'lunch_b',
     name: 'ランチB',
+    yomi: 'らんちびー',
     price: 530,
     category: '定食',
     image: `${IMG}/set_meal.jpg`,
@@ -94,6 +118,7 @@ export const MENU: MenuItem[] = [
   {
     id: 'lunch_c',
     name: 'ランチC',
+    yomi: 'らんちしー',
     price: 560,
     category: '定食',
     image: `${IMG}/set_meal.jpg`,
@@ -102,6 +127,7 @@ export const MENU: MenuItem[] = [
   {
     id: 'dinner_set',
     name: '夕定食',
+    yomi: 'ゆうていしょく',
     price: 490,
     category: '定食',
     image: `${IMG}/set_meal.jpg`,
@@ -111,72 +137,80 @@ export const MENU: MenuItem[] = [
   {
     id: 'ramen',
     name: 'ラーメン',
+    yomi: 'らーめん',
     price: 430,
     category: '麺類',
     description: '日替わりで味が変わります',
     image: `${ILLUST}/ramen.jpg`,
     badge: '日替わり',
-    optionGroups: [SIZE],
+    optionGroups: [SIZE, NEGI],
   },
   {
     id: 'wonton_ramen',
     name: 'ワンタンラーメン',
+    yomi: 'わんたんらーめん',
     price: 430,
     category: '麺類',
     description: 'つるんとしたワンタン入り',
     image: `${ILLUST}/wonton_ramen.jpg`,
-    optionGroups: [SIZE],
+    optionGroups: [SIZE, NEGI],
   },
   {
     id: 'kake',
     name: 'かけうどん・そば',
+    yomi: 'かけうどん・そば',
     price: 340,
     category: '麺類',
     description: 'だしのきいたシンプルな一杯',
     image: `${IMG}/kake.jpg`,
-    optionGroups: [NOODLE, SIZE],
+    optionGroups: [NOODLE, SIZE, NEGI],
   },
   {
     id: 'wakame',
     name: 'わかめうどん・そば',
+    yomi: 'わかめうどん・そば',
     price: 390,
     category: '麺類',
     description: 'わかめをたっぷりのせて',
     image: `${ILLUST}/wakame.jpg`,
-    optionGroups: [NOODLE, SIZE],
+    optionGroups: [NOODLE, SIZE, NEGI],
   },
   {
     id: 'tanuki',
     name: 'たぬきうどん・そば',
+    yomi: 'たぬきうどん・そば',
     price: 390,
     category: '麺類',
     description: '天かすとねぎをのせて',
     image: `${ILLUST}/tanuki.jpg`,
-    optionGroups: [NOODLE, SIZE],
+    optionGroups: [NOODLE, SIZE, NEGI],
   },
   {
     id: 'kitsune',
     name: 'きつねうどん・そば',
+    yomi: 'きつねうどん・そば',
     price: 420,
     category: '麺類',
     description: '甘く煮たおあげをのせて',
     image: `${IMG}/kitsune.jpg`,
-    optionGroups: [NOODLE, SIZE],
+    optionGroups: [NOODLE, SIZE, NEGI],
   },
   {
     id: 'curry_noodle',
     name: 'カレーうどん・そば',
+    yomi: 'かれーうどん・そば',
     price: 450,
     category: '麺類',
     description: 'だしのきいたカレーつゆで',
     image: `${IMG}/curry_noodle.jpg`,
-    optionGroups: [NOODLE, SIZE],
+    optionGroups: [NOODLE, SIZE, NEGI],
   },
 
   // カレー
   {
     id: 'curry',
     name: 'カレーライス',
+    yomi: 'かれーらいす',
     price: 480,
     category: 'カレー',
     description: '程よい辛さのごろっと具材',
@@ -186,6 +220,7 @@ export const MENU: MenuItem[] = [
   {
     id: 'katsu_curry',
     name: 'カツカレー',
+    yomi: 'かつかれー',
     price: 580,
     category: 'カレー',
     description: 'サクサクのカツをのせて',
@@ -195,6 +230,7 @@ export const MENU: MenuItem[] = [
   {
     id: 'karaage_curry',
     name: '唐揚カレー',
+    yomi: 'からあげかれー',
     price: 580,
     category: 'カレー',
     description: 'から揚げをのせて',
@@ -202,49 +238,54 @@ export const MENU: MenuItem[] = [
     optionGroups: [SIZE, FUKUJINZUKE],
   },
 
-  // 軽食
-  { id: 'takoyaki', name: 'たこ焼き', price: 270, category: '軽食', image: `${IMG}/takoyaki.jpg` },
-  { id: 'hamkatsu', name: 'ハムカツ', price: 150, category: '軽食', image: `${IMG}/hamkatsu.jpg` },
-  { id: 'yakisoba', name: '焼きそば', price: 270, category: '軽食', image: `${IMG}/yakisoba.jpg` },
+  // ホットスナック（掲示の「軽食メニュー」）
+  { id: 'takoyaki', name: 'たこ焼き', yomi: 'たこやき', price: 270, category: HOT_SNACK, image: `${IMG}/takoyaki.jpg` },
+  { id: 'hamkatsu', name: 'ハムカツ', yomi: 'はむかつ', price: 150, category: HOT_SNACK, image: `${IMG}/hamkatsu.jpg` },
+  { id: 'yakisoba', name: '焼きそば', yomi: 'やきそば', price: 270, category: HOT_SNACK, image: `${IMG}/yakisoba.jpg` },
   {
     id: 'kaori_age',
     name: '若鶏の香り揚げ',
+    yomi: 'わかどりのかおりあげ',
     price: 230,
-    category: '軽食',
+    category: HOT_SNACK,
     image: `${IMG}/kaori_age.jpg`,
     unit: '1こ',
   },
   {
     id: 'karaage',
     name: 'から揚げ',
+    yomi: 'からあげ',
     price: 180,
-    category: '軽食',
+    category: HOT_SNACK,
     image: `${IMG}/karaage.jpg`,
     unit: '1こ',
   },
   {
     id: 'manzoku_croquette',
     name: 'まんぞくコロッケ',
+    yomi: 'まんぞくころっけ',
     price: 150,
-    category: '軽食',
+    category: HOT_SNACK,
     image: `${IMG}/manzoku_croquette.jpg`,
     unit: '1こ',
   },
   {
     id: 'croquette',
     name: 'コロッケ',
+    yomi: 'ころっけ',
     price: 80,
-    category: '軽食',
+    category: HOT_SNACK,
     image: `${IMG}/croquette.jpg`,
     unit: '1こ',
   },
   {
     id: 'hash_potato',
     name: 'ハッシュドポテト',
+    yomi: 'はっしゅどぽてと',
     price: 150,
-    category: '軽食',
+    category: HOT_SNACK,
     image: `${IMG}/hash_potato.jpg`,
     unit: '1こ',
   },
-  { id: 'fries', name: 'フライドポテト', price: 180, category: '軽食', image: `${IMG}/fries.jpg` },
+  { id: 'fries', name: 'フライドポテト', yomi: 'ふらいどぽてと', price: 180, category: HOT_SNACK, image: `${IMG}/fries.jpg` },
 ]

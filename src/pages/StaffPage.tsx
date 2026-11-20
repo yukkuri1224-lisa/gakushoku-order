@@ -13,10 +13,12 @@ import { useLoginState } from '@/hooks/useLogin'
 import { useSoldOut } from '@/hooks/useSoldOut'
 import { loginMode, signInStaff, signOutAccount, type LoginState } from '@/lib/auth'
 import { STAFF_KEY, STAFF_PASSWORD, isGateOpen, openGate } from '@/lib/gate'
+import { HOT_SNACK, MENU, isHotSnack } from '@/data/menu'
 import {
   DINING_SHORT,
   type DiningOption,
   type Order,
+  type OrderItem,
   type OrderStatus,
   type SelectedOption,
 } from '@/types/order'
@@ -113,6 +115,38 @@ function DiningBadge({ option }: { option: DiningOption }) {
     <span className={`rounded px-2 py-1 text-sm font-bold ${cls}`}>
       {DINING_SHORT[option]}
     </span>
+  )
+}
+
+/** ホットスナックの行か（メニューから分かる行だけ） */
+function isHotSnackLine(i: OrderItem): boolean {
+  const m = MENU.find((x) => x.id === i.menuItemId)
+  return m ? isHotSnack(m) : false
+}
+
+function OrderLines({ items }: { items: OrderItem[] }) {
+  if (items.length === 0) return null
+  return (
+    <ul className="border-t border-ink-line">
+      {items.map((i) => {
+        const changed = changedOptions(i)
+        return (
+          <li key={itemKey(i)} className="border-b border-ink-line py-2.5">
+            <div className="flex justify-between gap-2 text-base">
+              <span className="font-bold">{i.name}</span>
+              <span className="font-bold tabular-nums">× {i.quantity}</span>
+            </div>
+            {changed.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {changed.map((op) => (
+                  <OptionChip key={op.groupId} option={op} />
+                ))}
+              </div>
+            )}
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 
@@ -241,26 +275,15 @@ function StaffBoard({
                     </div>
                   </div>
 
-                  <ul className="mt-3 flex-1 border-t border-ink-line">
-                    {o.items.map((i) => {
-                      const changed = changedOptions(i)
-                      return (
-                        <li key={itemKey(i)} className="border-b border-ink-line py-2.5">
-                          <div className="flex justify-between gap-2 text-base">
-                            <span className="font-bold">{i.name}</span>
-                            <span className="font-bold tabular-nums">× {i.quantity}</span>
-                          </div>
-                          {changed.length > 0 && (
-                            <div className="mt-1.5 flex flex-wrap gap-1.5">
-                              {changed.map((op) => (
-                                <OptionChip key={op.groupId} option={op} />
-                              ))}
-                            </div>
-                          )}
-                        </li>
-                      )
-                    })}
-                  </ul>
+                  <div className="mt-3 flex-1">
+                    <OrderLines items={o.items.filter((i) => !isHotSnackLine(i))} />
+                    {o.items.some(isHotSnackLine) && (
+                      <>
+                        <p className="mt-3 text-xs font-bold text-ink-sub">{HOT_SNACK}</p>
+                        <OrderLines items={o.items.filter(isHotSnackLine)} />
+                      </>
+                    )}
+                  </div>
 
                   <div className="mt-3 flex gap-2">
                     {o.status === 'paid' && (

@@ -171,3 +171,13 @@ export function ShareIcon({ className }: IconProps) {
     </Icon>
   )
 }
+
+/** 検索（虫めがね） */
+export function SearchIcon({ className }: IconProps) {
+  return (
+    <Icon className={className}>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="M16 16l4 4" />
+    </Icon>
+  )
+}
