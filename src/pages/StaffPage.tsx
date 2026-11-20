@@ -7,6 +7,7 @@ import { PasscodeScreen } from '@/components/PasscodeScreen'
 import { ProcessingScreen } from '@/components/ProcessingScreen'
 import { StaffLoginScreen } from '@/components/StaffLoginScreen'
 import { SoldOutPanel } from '@/components/SoldOutPanel'
+import { UsagePanel } from '@/components/UsagePanel'
 import { SoundButton } from '@/components/SoundButton'
 import { MealgoWordmark } from '@/components/Logo'
 import { useLoginState } from '@/hooks/useLogin'
@@ -158,7 +159,7 @@ function StaffBoard({
   account?: { email: string; onSignOut: () => Promise<void> }
 }) {
   const [orders, setOrders] = useState<Order[]>([])
-  const [tab, setTab] = useState<'orders' | 'soldOut'>('orders')
+  const [tab, setTab] = useState<'orders' | 'soldOut' | 'usage'>('orders')
   const soldOut = useSoldOut()
   const knownIds = useRef<Set<string> | null>(null)
   const repo = getOrderRepository()
@@ -235,10 +236,23 @@ function StaffBoard({
               </span>
             )}
           </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'usage'}
+            onClick={() => setTab('usage')}
+            className={tabClass(tab === 'usage')}
+          >
+            利用状況
+          </button>
         </div>
       </div>
 
-      {tab === 'soldOut' ? (
+      {tab === 'usage' ? (
+        <main className="mx-auto max-w-3xl p-4">
+          <UsagePanel />
+        </main>
+      ) : tab === 'soldOut' ? (
         <main className="mx-auto max-w-5xl p-4">
           <SoldOutPanel soldOut={soldOut} />
         </main>

@@ -115,6 +115,10 @@ export class LocalOrderRepository implements OrderRepository {
     }
   }
 
+  async listOrdersSince(since: number): Promise<Order[]> {
+    return this.readAll().filter((o) => o.createdAt >= since)
+  }
+
   subscribeActiveOrders(cb: OrdersCallback): Unsubscribe {
     this.activeSubs.add(cb)
     const active = this.readAll()

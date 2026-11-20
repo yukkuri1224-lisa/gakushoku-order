@@ -7,6 +7,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   setDoc,
   query,
@@ -88,6 +89,16 @@ export class FirestoreOrderRepository implements OrderRepository {
         .sort((a, b) => a.createdAt - b.createdAt)
       cb(orders)
     })
+  }
+
+  async listOrdersSince(since: number): Promise<Order[]> {
+    // createdAt だけの範囲指定（複合インデックス不要）。支払い中に預けた中身（pending-…）は除く
+    const snap = await getDocs(
+      query(collection(this.db, 'orders'), where('createdAt', '>=', since)),
+    )
+    return snap.docs
+      .map((d) => ({ id: d.id, ...(d.data() as Omit<Order, 'id'>) }))
+      .filter((o) => o.status === 'paid' || o.status === 'preparing' || o.status === 'completed')
   }
 
   async updateStatus(id: string, status: OrderStatus): Promise<void> {

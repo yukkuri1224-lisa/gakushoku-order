@@ -162,6 +162,44 @@ describe('厨房ボードの予約と先生', () => {
   })
 })
 
+describe('利用状況（スタッフだけ）', () => {
+  it('「利用状況」のタブで、今日の注文数・売上・人気メニューを出し、期間を切り替えられる', async () => {
+    const repo = getOrderRepository()
+    const a = await repo.createOrder({ items, total: 480, diningOption: 'eat_in' }, 'mock')
+    await repo.updateStatus(a.id, 'completed')
+    await repo.createOrder(
+      { items: [{ menuItemId: 'takoyaki', name: 'たこ焼き', price: 270, quantity: 2 }], total: 540, diningOption: 'takeout' },
+      'mock',
+    )
+
+    container = document.createElement('div')
+    document.body.appendChild(container)
+    root = createRoot(container)
+    act(() =>
+      root!.render(
+        <MemoryRouter>
+          <StaffPage />
+        </MemoryRouter>,
+      ),
+    )
+    const tab = [...container.querySelectorAll('[role="tab"]')].find((t) => t.textContent?.includes('利用状況')) as HTMLButtonElement
+    await act(async () => tab.click())
+    const panel = container.querySelector('[aria-label="利用状況"]')!
+    expect(panel.textContent).toContain('注文数')
+    expect(panel.textContent).toContain('2件')
+    expect(panel.textContent).toContain('¥1,020')
+    expect(panel.textContent).toContain('人気メニュー')
+    expect(panel.textContent).toContain('たこ焼き')
+    expect(panel.textContent).toContain('店内')
+    expect(panel.textContent).toContain('持ち帰り')
+
+    const week = [...panel.querySelectorAll('button')].find((b) => b.textContent === '7日間')!
+    await act(async () => week.click())
+    expect(week.getAttribute('aria-pressed')).toBe('true')
+    expect(panel.textContent).toContain('日ごとの注文数')
+  })
+})
+
 describe('厨房ボードの入口（スタッフのアカウント）', () => {
   function renderGate(login: LoginState, onSignOut = async () => {}) {
     container = document.createElement('div')
@@ -199,7 +237,7 @@ describe('厨房ボードの入口（スタッフのアカウント）', () => {
         signedOut = true
       },
     )
-    expect(el.querySelectorAll('[role="tab"]')).toHaveLength(2)
+    expect(el.querySelectorAll('[role="tab"]')).toHaveLength(3)
     expect(el.textContent).toContain('kitchen@example.com')
     const logout = [...el.querySelectorAll('button')].find((b) => b.textContent === 'ログアウト')!
     await act(async () => logout.click())

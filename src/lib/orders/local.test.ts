@@ -54,3 +54,13 @@ describe('支払い前に預ける注文の中身（PayPay から別のブラウ
   })
 })
 
+describe('利用状況のための注文の読み出し', () => {
+  it('指定した時刻以降の注文を、終わったものも含めて返す', async () => {
+    const repo = new LocalOrderRepository()
+    const a = await repo.createOrder({ items: [{ name: 'x', price: 100, quantity: 1 }], total: 100 }, 'mock')
+    await repo.updateStatus(a.id, 'completed')
+    const list = await repo.listOrdersSince(0)
+    expect(list.map((o) => o.id)).toContain(a.id)
+    expect(await repo.listOrdersSince(Date.now() + 60_000)).toEqual([])
+  })
+})
