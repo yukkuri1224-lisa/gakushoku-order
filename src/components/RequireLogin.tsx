@@ -43,7 +43,7 @@ export function WhenStudent({ children }: { children: ReactNode }) {
 
 function WhenStudentAccount({ children }: { children: ReactNode }) {
   const login = useLoginState()
-  return login.status === 'signedIn' && login.role === 'student' ? <>{children}</> : null
+  return login.status === 'signedIn' && login.student ? <>{children}</> : null
 }
 
 function StudentAccount({ children, notice }: { children: ReactNode; notice?: string }) {
@@ -71,7 +71,7 @@ export function StudentAccountGate({
   children: ReactNode
 }) {
   if (login.status === 'loading') return <ProcessingScreen title="読み込み中…" description="" />
-  if (login.status === 'signedIn' && login.role === 'student') return <>{children}</>
+  if (login.status === 'signedIn' && login.student) return <>{children}</>
   return (
     <LoginScreen
       domain={LOGIN_DOMAIN}

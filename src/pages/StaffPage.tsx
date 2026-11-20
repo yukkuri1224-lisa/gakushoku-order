@@ -12,7 +12,13 @@ import { SoundButton } from '@/components/SoundButton'
 import { MealgoWordmark } from '@/components/Logo'
 import { useLoginState } from '@/hooks/useLogin'
 import { useSoldOut } from '@/hooks/useSoldOut'
-import { loginMode, signInStaff, signOutAccount, type LoginState } from '@/lib/auth'
+import {
+  loginMode,
+  signInStaff,
+  signInStaffWithGoogle,
+  signOutAccount,
+  type LoginState,
+} from '@/lib/auth'
 import { STAFF_KEY, STAFF_PASSWORD, isGateOpen, openGate } from '@/lib/gate'
 import { HOT_SNACK, MENU, isHotSnack } from '@/data/menu'
 import {
@@ -34,28 +40,38 @@ export function StaffPage() {
 
 function StaffAccount() {
   const login = useLoginState()
-  return <StaffAccountGate login={login} onSignIn={signInStaff} onSignOut={signOutAccount} />
+  return (
+    <StaffAccountGate
+      login={login}
+      onSignIn={signInStaff}
+      onGoogleSignIn={signInStaffWithGoogle}
+      onSignOut={signOutAccount}
+    />
+  )
 }
 
 export function StaffAccountGate({
   login,
   onSignIn,
+  onGoogleSignIn,
   onSignOut,
 }: {
   login: LoginState
   onSignIn: (email: string, password: string) => Promise<void>
+  onGoogleSignIn: () => Promise<void>
   onSignOut: () => Promise<void>
 }) {
   if (login.status === 'loading') return <ProcessingScreen title="読み込み中…" description="" />
-  if (login.status === 'signedIn' && login.role === 'staff') {
+  if (login.status === 'signedIn' && login.staff) {
     return <StaffBoard account={{ email: login.email, onSignOut }} />
   }
   return (
     <StaffLoginScreen
       onSignIn={onSignIn}
+      onGoogleSignIn={onGoogleSignIn}
       notice={
         login.status === 'signedIn'
-          ? '学生のアカウントでログインしています。厨房ボードを使うには、スタッフのアカウントでログインし直してください。'
+          ? '学生のアカウントでログインしています。厨房ボードを使うには、スタッフに登録したアカウントでログインしてください。'
           : undefined
       }
     />

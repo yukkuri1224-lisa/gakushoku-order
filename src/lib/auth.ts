@@ -22,7 +22,11 @@ export function isAllowedEmail(email: string | null | undefined, domain: string)
   return at > 0 && email.trim().toLowerCase().slice(at + 1) === domain.toLowerCase()
 }
 
-export type Role = 'student' | 'staff'
+/** ログインしたアカウントができること。管理者のように、学生とスタッフの両方になることもある */
+export interface Roles {
+  student: boolean
+  staff: boolean
+}
 
 export interface AccountInfo {
   uid: string
@@ -35,23 +39,21 @@ type StaffCheck = 'yes' | 'no' | 'error'
 
 /**
  * ログインしたアカウントの役割。
- * 学校の Google アカウント（メール確認済み）なら学生。そうでなければスタッフの名簿を調べる。
- * 名簿を調べられなかったとき（通信が切れている等）は 'unknown'（ログアウトはさせない）。
+ * 学校の Google アカウント（メール確認済み）なら学生。どのアカウントも、スタッフの名簿にあればスタッフ。
+ * どちらでもなければ 'none'。名簿を調べられなかったとき（通信が切れている等）は、
+ * 学生ならそのまま学生、ほかは 'unknown'（決めつけてログアウトはさせない）。
  */
-export async function resolveRole(
+export async function resolveRoles(
   user: AccountInfo,
   domain: string,
   isStaffMember: (uid: string) => Promise<StaffCheck>,
-): Promise<Role | 'none' | 'unknown'> {
-  if (
-    user.emailVerified &&
-    user.providerIds.includes('google.com') &&
-    isAllowedEmail(user.email, domain)
-  ) {
-    return 'student'
-  }
-  const staff = await isStaffMember(user.uid)
-  return staff === 'yes' ? 'staff' : staff === 'no' ? 'none' : 'unknown'
+): Promise<Roles | 'none' | 'unknown'> {
+  const student =
+    user.emailVerified && user.providerIds.includes('google.com') && isAllowedEmail(user.email, domain)
+  const check = await isStaffMember(user.uid)
+  if (check === 'error') return student ? { student: true, staff: false } : 'unknown'
+  const staff = check === 'yes'
+  return student || staff ? { student, staff } : 'none'
 }
 
 export type LoginErrorCode =
@@ -106,7 +108,7 @@ export function loginErrorFromCode(code: string): LoginErrorCode {
 export type LoginState =
   | { status: 'loading' }
   | { status: 'signedOut' }
-  | { status: 'signedIn'; email: string; uid: string; role: Role }
+  | ({ status: 'signedIn'; email: string; uid: string } & Roles)
 
 let state: LoginState = { status: 'loading' }
 const listeners = new Set<() => void>()
@@ -140,17 +142,18 @@ async function checkStaffMember(uid: string): Promise<StaffCheck> {
 }
 
 // 同じアカウントの役割は 1 回だけ調べる（見張りとスタッフのログイン処理の両方から呼ばれる）
-const roleCache = new Map<string, Promise<Role | 'none' | 'unknown'>>()
+const roleCache = new Map<string, Promise<Roles | 'none' | 'unknown'>>()
 
-function roleOf(user: {
+function rolesOf(user: {
   uid: string
   email: string | null
   emailVerified: boolean
   providerData: { providerId: string }[]
-}): Promise<Role | 'none' | 'unknown'> {
+}): Promise<Roles | 'none' | 'unknown'> {
   let p = roleCache.get(user.uid)
   if (!p) {
-    p = resolveRole(
+    let failed = false
+    p = resolveRoles(
       {
         uid: user.uid,
         email: user.email,
@@ -158,12 +161,16 @@ function roleOf(user: {
         providerIds: user.providerData.map((d) => d.providerId),
       },
       LOGIN_DOMAIN,
-      checkStaffMember,
+      async (uid) => {
+        const r = await checkStaffMember(uid)
+        if (r === 'error') failed = true
+        return r
+      },
     )
     roleCache.set(user.uid, p)
-    // 調べられなかったときは、次にまた調べ直す
-    void p.then((r) => {
-      if (r === 'unknown') roleCache.delete(user.uid)
+    // 名簿を調べられなかったときは、次にまた調べ直す
+    void p.then(() => {
+      if (failed) roleCache.delete(user.uid)
     })
   }
   return p
@@ -184,12 +191,12 @@ function start(): void {
           setState({ status: 'signedOut' })
           return
         }
-        const role = await roleOf(user)
+        const roles = await rolesOf(user)
         if (mine !== seq) return
-        if (role === 'student' || role === 'staff') {
-          setState({ status: 'signedIn', email: user.email ?? '', uid: user.uid, role })
+        if (typeof roles === 'object') {
+          setState({ status: 'signedIn', email: user.email ?? '', uid: user.uid, ...roles })
         } else {
-          if (role === 'none') void mod.signOut(auth)
+          if (roles === 'none') void mod.signOut(auth)
           setState({ status: 'signedOut' })
         }
       })
@@ -238,17 +245,54 @@ export async function signInWithGoogle(): Promise<void> {
   }
 }
 
+type AuthModule = Awaited<ReturnType<typeof authModule>>
+
+// スタッフとしてログインしたあとの確かめ。名簿になければ LoginError('not-staff')
+// （学生としては使えるアカウントなら、ログインしたままにする）
+async function requireStaff(
+  { mod, auth }: AuthModule,
+  user: Parameters<typeof rolesOf>[0],
+): Promise<void> {
+  // ログインし直したときは名簿を調べ直す（名簿に追加した直後でも入れるように）
+  roleCache.delete(user.uid)
+  const roles = await rolesOf(user)
+  if (roles === 'unknown') throw new LoginError('network')
+  if (typeof roles === 'object') {
+    // 同じアカウントでログインし直すと見張りが呼ばれないことがあるので、ここで状態を更新する
+    setState({ status: 'signedIn', email: user.email ?? '', uid: user.uid, ...roles })
+    if (roles.staff) return
+  }
+  if (roles === 'none') await mod.signOut(auth)
+  throw new LoginError('not-staff')
+}
+
 /** スタッフ: メールアドレスとパスワードでログイン。名簿にないアカウントなら LoginError('not-staff') */
 export async function signInStaff(email: string, password: string): Promise<void> {
-  const { mod, auth } = await authModule()
+  const m = await authModule()
   try {
-    const { user } = await mod.signInWithEmailAndPassword(auth, email.trim(), password)
-    const role = await roleOf(user)
-    if (role === 'staff') return
-    if (role === 'unknown') throw new LoginError('network')
-    await mod.signOut(auth)
-    throw new LoginError('not-staff')
+    const { user } = await m.mod.signInWithEmailAndPassword(m.auth, email.trim(), password)
+    await requireStaff(m, user)
   } catch (e) {
+    throw toLoginError(e)
+  }
+}
+
+/**
+ * スタッフ: Google でログイン（学校のアカウントなど）。スタッフの名簿にあるアカウントだけ厨房ボードを使える。
+ * 管理者が自分の学校のアカウントで入るときなどに使う。
+ */
+export async function signInStaffWithGoogle(): Promise<void> {
+  const m = await authModule()
+  const provider = new m.mod.GoogleAuthProvider()
+  provider.setCustomParameters({ prompt: 'select_account' })
+  try {
+    const { user } = await m.mod.signInWithPopup(m.auth, provider)
+    await requireStaff(m, user)
+  } catch (e) {
+    if ((e as { code?: string }).code === 'auth/popup-blocked') {
+      await m.mod.signInWithRedirect(m.auth, provider)
+      return
+    }
     throw toLoginError(e)
   }
 }

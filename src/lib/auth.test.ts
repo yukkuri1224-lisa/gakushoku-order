@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isAllowedEmail, loginErrorFromCode, resolveRole } from './auth'
+import { isAllowedEmail, loginErrorFromCode, resolveRoles } from './auth'
 
 describe('ログインできるアカウント', () => {
   const domain = 'gl.pen-kanagawa.ed.jp'
@@ -35,29 +35,29 @@ describe('ログインしたアカウントの役割', () => {
   const noStaff = async () => 'no' as const
   const yesStaff = async () => 'yes' as const
 
-  it('学校の Google アカウントは学生（スタッフの名簿は調べない）', async () => {
-    let asked = false
-    const role = await resolveRole(student, domain, async () => {
-      asked = true
-      return 'no'
-    })
-    expect(role).toBe('student')
-    expect(asked).toBe(false)
+  it('学校の Google アカウントは学生。名簿になければスタッフではない', async () => {
+    expect(await resolveRoles(student, domain, noStaff)).toEqual({ student: true, staff: false })
   })
 
-  it('スタッフの名簿にあるアカウントはスタッフ', async () => {
-    expect(await resolveRole(staffAccount, domain, yesStaff)).toBe('staff')
+  it('学校の Google アカウントでも、名簿にあれば学生とスタッフの両方（管理者など）', async () => {
+    expect(await resolveRoles(student, domain, yesStaff)).toEqual({ student: true, staff: true })
+  })
+
+  it('名簿にあるパスワードのアカウントはスタッフだけ', async () => {
+    expect(await resolveRoles(staffAccount, domain, yesStaff)).toEqual({ student: false, staff: true })
   })
 
   it('どちらでもなければ入れない（gmail・メール未確認・パスワードで作った学校のアドレス）', async () => {
-    expect(await resolveRole({ ...student, email: 'a@gmail.com' }, domain, noStaff)).toBe('none')
-    expect(await resolveRole({ ...student, emailVerified: false }, domain, noStaff)).toBe('none')
-    expect(await resolveRole({ ...student, providerIds: ['password'] }, domain, noStaff)).toBe('none')
-    expect(await resolveRole(staffAccount, domain, noStaff)).toBe('none')
+    expect(await resolveRoles({ ...student, email: 'a@gmail.com' }, domain, noStaff)).toBe('none')
+    expect(await resolveRoles({ ...student, emailVerified: false }, domain, noStaff)).toBe('none')
+    expect(await resolveRoles({ ...student, providerIds: ['password'] }, domain, noStaff)).toBe('none')
+    expect(await resolveRoles(staffAccount, domain, noStaff)).toBe('none')
   })
 
-  it('名簿を調べられなかった（通信が切れている等）ときは、決めつけずに「わからない」', async () => {
-    expect(await resolveRole(staffAccount, domain, async () => 'error')).toBe('unknown')
+  it('名簿を調べられなかった（通信が切れている等）とき、学生はそのまま入れ、ほかは決めつけずに「わからない」', async () => {
+    const error = async () => 'error' as const
+    expect(await resolveRoles(student, domain, error)).toEqual({ student: true, staff: false })
+    expect(await resolveRoles(staffAccount, domain, error)).toBe('unknown')
   })
 })
 

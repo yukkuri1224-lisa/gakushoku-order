@@ -38,7 +38,8 @@ const signedIn = (role: 'student' | 'staff'): LoginState => ({
   status: 'signedIn',
   email: role === 'student' ? '0191xxxx@gl.pen-kanagawa.ed.jp' : 'kitchen@example.com',
   uid: 'u1',
-  role,
+  student: role === 'student',
+  staff: role === 'staff',
 })
 
 describe('学生の画面の入口（アカウントでのログイン）', () => {
@@ -64,5 +65,10 @@ describe('学生の画面の入口（アカウントでのログイン）', () =
     const el = render({ status: 'loading' })
     expect(el.textContent).toContain('読み込み中')
     expect(el.textContent).not.toContain('メニュー')
+  })
+
+  it('学生とスタッフの両方のアカウント（管理者）は、学生の画面も使える', () => {
+    const el = render({ status: 'signedIn', email: 'admin@gl.pen-kanagawa.ed.jp', uid: 'a1', student: true, staff: true })
+    expect(el.textContent).toContain('メニュー')
   })
 })

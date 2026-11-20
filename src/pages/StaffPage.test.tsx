@@ -201,14 +201,19 @@ describe('利用状況（スタッフだけ）', () => {
 })
 
 describe('厨房ボードの入口（スタッフのアカウント）', () => {
-  function renderGate(login: LoginState, onSignOut = async () => {}) {
+  function renderGate(login: LoginState, onSignOut = async () => {}, onGoogleSignIn = async () => {}) {
     container = document.createElement('div')
     document.body.appendChild(container)
     root = createRoot(container)
     act(() =>
       root!.render(
         <MemoryRouter>
-          <StaffAccountGate login={login} onSignIn={async () => {}} onSignOut={onSignOut} />
+          <StaffAccountGate
+            login={login}
+            onSignIn={async () => {}}
+            onGoogleSignIn={onGoogleSignIn}
+            onSignOut={onSignOut}
+          />
         </MemoryRouter>,
       ),
     )
@@ -224,7 +229,7 @@ describe('厨房ボードの入口（スタッフのアカウント）', () => {
   })
 
   it('学生のアカウントでは入れず、スタッフのアカウントでログインし直すよう伝える', () => {
-    const el = renderGate({ status: 'signedIn', email: 'a@gl.pen-kanagawa.ed.jp', uid: 's1', role: 'student' })
+    const el = renderGate({ status: 'signedIn', email: 'a@gl.pen-kanagawa.ed.jp', uid: 's1', student: true, staff: false })
     expect(el.querySelector('input[type="email"]')).not.toBeNull()
     expect(el.textContent).toContain('学生のアカウントでログインしています')
   })
@@ -232,7 +237,7 @@ describe('厨房ボードの入口（スタッフのアカウント）', () => {
   it('スタッフでログインしていれば厨房ボード。ログイン中のアカウントとログアウトを出す', async () => {
     let signedOut = false
     const el = renderGate(
-      { status: 'signedIn', email: 'kitchen@example.com', uid: 'k1', role: 'staff' },
+      { status: 'signedIn', email: 'kitchen@example.com', uid: 'k1', student: false, staff: true },
       async () => {
         signedOut = true
       },
@@ -242,5 +247,20 @@ describe('厨房ボードの入口（スタッフのアカウント）', () => {
     const logout = [...el.querySelectorAll('button')].find((b) => b.textContent === 'ログアウト')!
     await act(async () => logout.click())
     expect(signedOut).toBe(true)
+  })
+
+  it('学校の Google アカウントでも、スタッフの名簿にあれば厨房ボードを使える（管理者）', () => {
+    const el = renderGate({ status: 'signedIn', email: 'admin@gl.pen-kanagawa.ed.jp', uid: 'a1', student: true, staff: true })
+    expect(el.querySelectorAll('[role="tab"]')).toHaveLength(3)
+  })
+
+  it('ログイン画面に「Google でログイン」があり、押すと Google でのログインを始める', async () => {
+    let called = false
+    const el = renderGate({ status: 'signedOut' }, async () => {}, async () => {
+      called = true
+    })
+    const google = [...el.querySelectorAll('button')].find((b) => b.textContent?.includes('Google でログイン'))!
+    await act(async () => google.click())
+    expect(called).toBe(true)
   })
 })

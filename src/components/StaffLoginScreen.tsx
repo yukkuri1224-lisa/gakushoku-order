@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { EntranceScreen } from '@/components/EntranceScreen'
+import { GoogleLogo } from '@/components/icons'
 import { LoginError, type LoginErrorCode } from '@/lib/auth'
 
 const MESSAGES: Partial<Record<LoginErrorCode, string>> = {
@@ -15,9 +16,12 @@ const MESSAGES: Partial<Record<LoginErrorCode, string>> = {
 // パスワードは画面やページの中には入らず、確かめるのは Firebase。名簿（staffMembers）にある人だけが入れる。
 export function StaffLoginScreen({
   onSignIn,
+  onGoogleSignIn,
   notice,
 }: {
   onSignIn: (email: string, password: string) => Promise<void>
+  /** Google でログイン（学校のアカウントなど、名簿にあるアカウント） */
+  onGoogleSignIn?: () => Promise<void>
   notice?: string
 }) {
   const [email, setEmail] = useState('')
@@ -41,6 +45,22 @@ export function StaffLoginScreen({
       const code = err instanceof LoginError ? err.code : 'unknown'
       setError(MESSAGES[code] ?? 'ログインできませんでした。時間をおいて、もう一度お試しください。')
       setPassword('')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const signInWithGoogle = async () => {
+    if (busy || !onGoogleSignIn) return
+    setBusy(true)
+    setError(null)
+    try {
+      await onGoogleSignIn()
+    } catch (err) {
+      const code = err instanceof LoginError ? err.code : 'unknown'
+      if (code !== 'cancelled') {
+        setError(MESSAGES[code] ?? 'ログインできませんでした。時間をおいて、もう一度お試しください。')
+      }
     } finally {
       setBusy(false)
     }
@@ -127,6 +147,27 @@ export function StaffLoginScreen({
           {busy ? 'ログインしています…' : 'ログイン'}
         </button>
       </form>
+      {onGoogleSignIn && (
+        <>
+          <div className="my-5 flex items-center gap-3 text-xs text-ink-sub" aria-hidden="true">
+            <span className="h-px flex-1 bg-ink-line" />
+            または
+            <span className="h-px flex-1 bg-ink-line" />
+          </div>
+          <button
+            type="button"
+            onClick={signInWithGoogle}
+            disabled={busy}
+            className="flex h-14 w-full items-center justify-center gap-3 rounded-full border border-ink-line bg-white text-base font-bold text-ink disabled:opacity-60"
+          >
+            <GoogleLogo />
+            Google でログイン
+          </button>
+          <p className="mt-2 text-center text-xs text-ink-sub">
+            スタッフに登録した学校のアカウントなどで入れます
+          </p>
+        </>
+      )}
       <p className="mt-6 text-xs leading-relaxed text-ink-sub">
         アカウントは食堂の責任者が用意します。パスワードはほかの人に教えず、共用の端末では使い終わったらログアウトしてください。
       </p>
