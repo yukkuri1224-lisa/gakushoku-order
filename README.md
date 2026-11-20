@@ -170,7 +170,7 @@ npm run dev
 ### 設定の手順（Firebase コンソールと Vercel）
 **手順 1〜5 をしているあいだは、いまのサイト（合言葉）のまま動きます。** 6 と 7 は続けて行ってください（そのあいだ数分だけ使えません）。
 
-1. [Firebase コンソール](https://console.firebase.google.com/) → プロジェクト `gakushoku-order` → **Authentication** →「**始める**」。
+1. [Firebase コンソール](https://console.firebase.google.com/) → プロジェクト `mobileorder-5f178`（サイトの `VITE_FIREBASE_PROJECT_ID` と同じもの）→ **Authentication** →「**始める**」。
 2. **Sign-in method** タブで、次の 2 つを有効にする。
    - **Google** →「有効にする」→ プロジェクトのサポートメールを選んで保存。
    - **メール / パスワード** → 上の「メール / パスワード」だけ有効にして保存（「メールリンク」は無効のまま）。
