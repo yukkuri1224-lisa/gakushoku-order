@@ -311,3 +311,30 @@ describe('メニュー（menuItems）', () => {
     await assertFails(setDoc(doc(f, 'menuItems', 'x6'), { ...dish, secret: true }))
   })
 })
+
+describe('調理完了の通知の宛先（pushTokens）', () => {
+  const token = (uid) => ({ token: 'fcm-token-abc', uid, createdAt: 1 })
+
+  it('学生は、自分の注文にだけ通知の宛先を置ける', async () => {
+    await seed(async (f) => {
+      await setDoc(doc(f, 'orders', 'mine'), order('stu1'))
+      await setDoc(doc(f, 'orders', 'theirs'), order('stu2'))
+    })
+    const f = db.student()
+    await assertSucceeds(setDoc(doc(f, 'pushTokens', 'mine'), token('stu1')))
+    await assertFails(setDoc(doc(f, 'pushTokens', 'theirs'), token('stu1')))
+    await assertFails(setDoc(doc(f, 'pushTokens', 'theirs'), token('stu2')))
+    await assertFails(setDoc(doc(f, 'pushTokens', 'not-exist'), token('stu1')))
+    await assertFails(setDoc(doc(f, 'pushTokens', 'mine'), { ...token('stu1'), extra: 1 }))
+  })
+
+  it('ブラウザからはだれも読めない（スタッフも）。ログインしていない人は置けない', async () => {
+    await seed(async (f) => {
+      await setDoc(doc(f, 'orders', 'mine'), order('stu1'))
+      await setDoc(doc(f, 'pushTokens', 'mine'), token('stu1'))
+    })
+    await assertFails(getDoc(doc(db.student(), 'pushTokens', 'mine')))
+    await assertFails(getDoc(doc(db.staff(), 'pushTokens', 'mine')))
+    await assertFails(setDoc(doc(db.anon(), 'pushTokens', 'mine'), token('stu1')))
+  })
+})

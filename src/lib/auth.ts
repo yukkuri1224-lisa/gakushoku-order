@@ -219,6 +219,13 @@ export function currentUid(): string | undefined {
   return state.status === 'signedIn' ? state.uid : undefined
 }
 
+/** ログイン中のアカウントの ID トークン（サーバー関数にログインを示すため）。なければ null */
+export async function currentIdToken(): Promise<string | null> {
+  if (state.status !== 'signedIn') return null
+  const { auth } = await authModule()
+  return (await auth.currentUser?.getIdToken()) ?? null
+}
+
 function toLoginError(e: unknown): LoginError {
   if (e instanceof LoginError) return e
   return new LoginError(loginErrorFromCode((e as { code?: string }).code ?? ''))

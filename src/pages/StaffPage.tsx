@@ -34,6 +34,7 @@ import {
 } from '@/types/order'
 import { playChime } from '@/lib/sound'
 import { dueAt, formatPickup } from '@/lib/pickup'
+import { notifyOrderReady } from '@/lib/push'
 
 // 厨房ボードの入口。アカウントでのログイン（VITE_LOGIN_DOMAIN あり）なら、スタッフのアカウントだけ。
 // 合言葉のデモでは、スタッフ用の合言葉。
@@ -201,7 +202,10 @@ function StaffBoard({
   }, [])
 
   const setStatus = (id: string, status: OrderStatus) => {
-    void repo.updateStatus(id, status)
+    void repo.updateStatus(id, status).then(() => {
+      // 調理完了: 通知をオンにしている学生のスマホへ（届かなくても厨房の作業は止めない）
+      if (status === 'completed') void notifyOrderReady(id).catch((e) => console.warn(e))
+    })
   }
 
   const tabClass = (active: boolean) =>

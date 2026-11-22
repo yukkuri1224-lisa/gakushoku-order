@@ -19,5 +19,8 @@ service cloud.firestore {
     match /menuItems/{itemId} {
       allow read, write: if true;
     }
+    match /pushTokens/{orderId} {
+      allow read, write: if true;
+    }
   }
 }

@@ -18,6 +18,8 @@ export default defineConfig({
         clientsClaim: true, // 開いている画面もすぐ新しい版の管理下に置く
         // Firebase のログイン画面（/__/auth/…）とサーバー関数（/api/…）はアプリの画面に置き換えない
         navigateFallbackDenylist: [/^\/__\//, /^\/api\//],
+        // 調理完了の通知を表示する処理（public/push-sw.js）
+        importScripts: ['push-sw.js'],
       },
       includeAssets: [
         'favicon-32.png',

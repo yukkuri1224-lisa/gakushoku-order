@@ -9,6 +9,7 @@ import { ReadyOverlay } from '@/components/ReadyOverlay'
 import { Section } from '@/components/Section'
 import { SoundButton } from '@/components/SoundButton'
 import { WaitingNote } from '@/components/WaitingNote'
+import { NotifyCard } from '@/components/NotifyCard'
 import { CheckIcon } from '@/components/icons'
 import { DINING_LABEL, type OrderStatus } from '@/types/order'
 
@@ -158,6 +159,8 @@ export function OrderStatusPage() {
             <Row label="注文日時" value={formatDateTime(order.createdAt)} />
           </dl>
         </section>
+
+        {order.status !== 'completed' && <NotifyCard orderId={order.id} />}
 
         <Section title="受け取り方">
           <ol className="list-decimal space-y-1 pl-5 text-[15px] leading-relaxed">

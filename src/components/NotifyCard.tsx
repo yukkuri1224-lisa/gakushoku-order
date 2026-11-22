@@ -1,0 +1,93 @@
+import { useEffect, useState } from 'react'
+import { BellIcon, CheckIcon } from '@/components/icons'
+import { enablePushForOrder, pushState, registerOrderForPush, type PushState } from '@/lib/push'
+
+// 注文番号画面の「できあがったらスマホに通知」。アプリを閉じていても、調理完了で通知が届く。
+export function NotifyCard({ orderId }: { orderId: string }) {
+  const [state, setState] = useState<PushState>(() => pushState())
+
+  // 許可済みなら、この注文の宛先を置いておく（前の注文で許可した人も、この注文で届くように）
+  useEffect(() => {
+    if (state === 'granted') void registerOrderForPush(orderId).catch((e) => console.warn(e))
+  }, [state, orderId])
+
+  return (
+    <NotifyCardView
+      state={state}
+      onEnable={async () => {
+        try {
+          setState(await enablePushForOrder(orderId))
+        } catch (e) {
+          console.warn(e)
+          setState(pushState())
+        }
+      }}
+    />
+  )
+}
+
+export function NotifyCardView({
+  state,
+  onEnable,
+}: {
+  state: PushState
+  onEnable: () => Promise<void>
+}) {
+  const [busy, setBusy] = useState(false)
+  if (state === 'unsupported') return null
+  const box = 'mx-4 mt-4 flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-card'
+  const icon = (
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
+      <BellIcon className="h-5 w-5" />
+    </span>
+  )
+
+  if (state === 'granted') {
+    return (
+      <div className={box}>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success text-white">
+          <CheckIcon className="h-5 w-5" />
+        </span>
+        <p className="text-sm font-bold">できあがったら、スマホに通知でお知らせします</p>
+      </div>
+    )
+  }
+  if (state === 'denied') {
+    return (
+      <div className={box}>
+        {icon}
+        <p className="text-[13px] leading-relaxed text-ink-sub">
+          通知がブロックされています。受け取るには、ブラウザやスマホの設定でこのサイトの通知を許可してください。
+        </p>
+      </div>
+    )
+  }
+  if (state === 'needs-install') {
+    return (
+      <div className={box}>
+        {icon}
+        <p className="text-[13px] leading-relaxed text-ink-sub">
+          iPhone は、このサイトを「ホーム画面に追加」して開くと、できあがりの通知を受け取れます。
+        </p>
+      </div>
+    )
+  }
+  return (
+    <div className="mx-4 mt-4">
+      <button
+        type="button"
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true)
+          await onEnable()
+          setBusy(false)
+        }}
+        className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-white text-base font-bold text-brand shadow-card disabled:opacity-60"
+      >
+        <BellIcon className="h-5 w-5" />
+        できあがったらスマホに通知する
+      </button>
+      <p className="mt-1.5 text-center text-xs text-ink-sub">アプリを閉じていても届きます</p>
+    </div>
+  )
+}

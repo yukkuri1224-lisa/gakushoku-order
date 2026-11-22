@@ -5,6 +5,7 @@ import { getOrderRepository } from '@/lib/orders'
 import { clearPendingPayPayId } from '@/lib/payment'
 import { rememberOrder } from '@/lib/myOrders'
 import { currentDraft } from '@/lib/orderDraft'
+import { registerOrderForPush } from '@/lib/push'
 import { useCartStore } from '@/store/cart'
 import { useOrderPrefs } from '@/store/orderPrefs'
 import type { OrderDraft, PaymentMethod } from '@/types/order'
@@ -27,6 +28,8 @@ export async function registerPaidOrder(
     void repo.deletePendingDraft(orderId).catch(() => {})
   }
   useCartStore.getState().clear()
+  // 通知を許可している端末なら、この注文の通知の宛先も置く（失敗しても注文はそのまま）
+  void registerOrderForPush(id).catch((e) => console.warn('通知の準備ができませんでした', e))
   // 受け取り時間の予約は注文ごと（注文する人は端末に覚えておく）
   useOrderPrefs.getState().setPickupAt(null)
   return id
