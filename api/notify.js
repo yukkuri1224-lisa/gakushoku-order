@@ -5,9 +5,9 @@
 //                              「新しい秘密鍵を生成」で落とした JSON の中身をまるごと
 import { cert, getApps, initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
-import { getFirestore } from 'firebase-admin/firestore'
+import { FieldValue, getFirestore } from 'firebase-admin/firestore'
 import { getMessaging } from 'firebase-admin/messaging'
-import { handleNotify, parseServiceAccount } from './_notify-core.js'
+import { INVALID_TOKEN_CODES, handleNotify, parseServiceAccount } from './_notify-core.js'
 
 /** @returns {import('firebase-admin/app').App | 'missing' | 'invalid'} */
 function app() {
@@ -43,21 +43,29 @@ export default async function handler(req, res) {
       isStaff: async (uid) => (await db.doc(`staffMembers/${uid}`).get()).exists,
       getOrder: async (id) => {
         const snap = await db.doc(`orders/${id}`).get()
-        return snap.exists ? { orderNumber: snap.get('orderNumber') } : null
+        return snap.exists ? { orderNumber: snap.get('orderNumber'), uid: snap.get('uid') } : null
       },
-      getPushToken: async (id) => {
-        const snap = await db.doc(`pushTokens/${id}`).get()
-        return snap.exists ? (snap.get('token') ?? null) : null
+      getPushTokens: async (uid) => {
+        const snap = await db.doc(`pushTokens/${uid}`).get()
+        const tokens = snap.exists ? snap.get('tokens') : null
+        return Array.isArray(tokens) ? tokens.filter((t) => typeof t === 'string') : []
       },
-      send: async ({ token, data }) => {
-        await getMessaging(a).send({
-          token,
+      send: async ({ tokens, data }) => {
+        const r = await getMessaging(a).sendEachForMulticast({
+          tokens,
           data,
           webpush: { headers: { Urgency: 'high', TTL: '3600' } },
         })
+        const invalidTokens = r.responses.flatMap((x, i) =>
+          !x.success && INVALID_TOKEN_CODES.includes(x.error?.code ?? '') ? [tokens[i]] : [],
+        )
+        r.responses.forEach((x) => {
+          if (!x.success) console.warn('通知を送れなかった宛先がありました', x.error?.code)
+        })
+        return { successCount: r.successCount, invalidTokens }
       },
-      deletePushToken: async (id) => {
-        await db.doc(`pushTokens/${id}`).delete()
+      removePushTokens: async (uid, tokens) => {
+        await db.doc(`pushTokens/${uid}`).update({ tokens: FieldValue.arrayRemove(...tokens) })
       },
     })
     res.status(r.status).json(r.body)

@@ -1,17 +1,21 @@
 // 調理完了の通知を送るかどうかを決めて送る（Firebase の部分は deps で受け取る。テストでは差し替える）。
 //   POST /api/notify  { orderId }   Authorization: Bearer <スタッフの Firebase の ID トークン>
-// スタッフ（staffMembers にあるアカウント）だけが呼べる。学生が通知をオンにした注文
-// （pushTokens/{orderId}）にだけ送る。ファイル名が _ で始まるので、Vercel はこれを関数として公開しない。
+// スタッフ（staffMembers にあるアカウント）だけが呼べる。注文した学生が通知をオンにした端末
+// （pushTokens/{学生の UID} の tokens）すべてへ送る。ファイル名が _ で始まるので、Vercel はこれを関数として公開しない。
+//
+// 宛先は「注文ごと」ではなく「学生のアカウント・端末ごと」。iPhone では PayPay の支払いのあと
+// Safari に戻ってしまい（ホーム画面のアプリに戻れない）、注文の画面で通知を設定できないため。
 
 /**
  * @param {{ method?: string, headers: Record<string, string | undefined>, body?: any }} req
  * @param {{
  *   verifyIdToken: (token: string) => Promise<{ uid: string }>,
  *   isStaff: (uid: string) => Promise<boolean>,
- *   getOrder: (orderId: string) => Promise<{ orderNumber: number } | null>,
- *   getPushToken: (orderId: string) => Promise<string | null>,
- *   send: (message: { token: string, data: Record<string, string> }) => Promise<void>,
- *   deletePushToken: (orderId: string) => Promise<void>,
+ *   getOrder: (orderId: string) => Promise<{ orderNumber: number, uid?: string } | null>,
+ *   getPushTokens: (uid: string) => Promise<string[]>,
+ *   send: (message: { tokens: string[], data: Record<string, string> }) =>
+ *     Promise<{ successCount: number, invalidTokens: string[] }>,
+ *   removePushTokens: (uid: string, tokens: string[]) => Promise<void>,
  * }} deps
  * @returns {Promise<{ status: number, body: Record<string, unknown> }>}
  */
@@ -33,30 +37,33 @@ export async function handleNotify(req, deps) {
   const orderId = typeof body.orderId === 'string' ? body.orderId : ''
   if (!orderId || orderId.length > 200) return { status: 400, body: { error: 'orderId が必要です' } }
 
-  const [order, pushToken] = await Promise.all([deps.getOrder(orderId), deps.getPushToken(orderId)])
-  if (!order || !pushToken) return { status: 200, body: { sent: false } }
+  const order = await deps.getOrder(orderId)
+  if (!order?.uid) return { status: 200, body: { sent: false } }
+  const tokens = await deps.getPushTokens(order.uid)
+  if (tokens.length === 0) return { status: 200, body: { sent: false } }
 
-  try {
-    await deps.send({
-      token: pushToken,
-      data: {
-        title: 'できあがりました',
-        body: `注文番号 ${order.orderNumber} ができあがりました。カウンターでお受け取りください。`,
-        url: `/order/${orderId}`,
-        tag: `ready-${orderId}`,
-      },
-    })
-    return { status: 200, body: { sent: true } }
-  } catch (e) {
-    const code = /** @type {{ code?: string }} */ (e).code ?? ''
-    // アプリを消した・通知を切ったなどで使えなくなった通知先は消しておく
-    if (code === 'messaging/registration-token-not-registered' || code === 'messaging/invalid-registration-token') {
-      await deps.deletePushToken(orderId).catch(() => {})
-      return { status: 200, body: { sent: false } }
-    }
-    throw e
+  const result = await deps.send({
+    tokens,
+    data: {
+      title: 'できあがりました',
+      body: `注文番号 ${order.orderNumber} ができあがりました。カウンターでお受け取りください。`,
+      url: `/order/${orderId}`,
+      tag: `ready-${orderId}`,
+    },
+  })
+  // アプリを消した・通知を切ったなどで使えなくなった宛先は消しておく
+  if (result.invalidTokens.length > 0) {
+    await deps.removePushTokens(order.uid, result.invalidTokens).catch(() => {})
   }
+  return { status: 200, body: { sent: result.successCount > 0 } }
 }
+
+/** 使えなくなった宛先を表す FCM のエラー */
+export const INVALID_TOKEN_CODES = [
+  'messaging/registration-token-not-registered',
+  'messaging/invalid-registration-token',
+  'messaging/invalid-argument',
+]
 
 function safeJson(text) {
   try {

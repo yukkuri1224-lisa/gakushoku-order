@@ -312,29 +312,25 @@ describe('メニュー（menuItems）', () => {
   })
 })
 
-describe('調理完了の通知の宛先（pushTokens）', () => {
-  const token = (uid) => ({ token: 'fcm-token-abc', uid, createdAt: 1 })
+describe('調理完了の通知の宛先（pushTokens・学生ごと）', () => {
+  const tokens = (list) => ({ tokens: list, updatedAt: 1 })
 
-  it('学生は、自分の注文にだけ通知の宛先を置ける', async () => {
-    await seed(async (f) => {
-      await setDoc(doc(f, 'orders', 'mine'), order('stu1'))
-      await setDoc(doc(f, 'orders', 'theirs'), order('stu2'))
-    })
+  it('学生は、自分の分だけ置ける・読める・消せる（端末は 10 個まで）', async () => {
     const f = db.student()
-    await assertSucceeds(setDoc(doc(f, 'pushTokens', 'mine'), token('stu1')))
-    await assertFails(setDoc(doc(f, 'pushTokens', 'theirs'), token('stu1')))
-    await assertFails(setDoc(doc(f, 'pushTokens', 'theirs'), token('stu2')))
-    await assertFails(setDoc(doc(f, 'pushTokens', 'not-exist'), token('stu1')))
-    await assertFails(setDoc(doc(f, 'pushTokens', 'mine'), { ...token('stu1'), extra: 1 }))
+    await assertSucceeds(setDoc(doc(f, 'pushTokens', 'stu1'), tokens(['phone'])))
+    await assertSucceeds(setDoc(doc(f, 'pushTokens', 'stu1'), tokens(['phone', 'pc'])))
+    await assertSucceeds(getDoc(doc(f, 'pushTokens', 'stu1')))
+    await assertFails(setDoc(doc(f, 'pushTokens', 'stu1'), tokens(Array.from({ length: 11 }, (_, i) => `t${i}`))))
+    await assertFails(setDoc(doc(f, 'pushTokens', 'stu1'), { ...tokens(['x']), extra: 1 }))
+    await assertSucceeds(deleteDoc(doc(f, 'pushTokens', 'stu1')))
   })
 
-  it('ブラウザからはだれも読めない（スタッフも）。ログインしていない人は置けない', async () => {
-    await seed(async (f) => {
-      await setDoc(doc(f, 'orders', 'mine'), order('stu1'))
-      await setDoc(doc(f, 'pushTokens', 'mine'), token('stu1'))
-    })
-    await assertFails(getDoc(doc(db.student(), 'pushTokens', 'mine')))
-    await assertFails(getDoc(doc(db.staff(), 'pushTokens', 'mine')))
-    await assertFails(setDoc(doc(db.anon(), 'pushTokens', 'mine'), token('stu1')))
+  it('ほかの人の分は、学生もスタッフも読めず書けない。ログインしていない人も', async () => {
+    await seed((f) => setDoc(doc(f, 'pushTokens', 'stu2'), tokens(['their-phone'])))
+    await assertFails(getDoc(doc(db.student(), 'pushTokens', 'stu2')))
+    await assertFails(setDoc(doc(db.student(), 'pushTokens', 'stu2'), tokens(['mine'])))
+    await assertFails(getDoc(doc(db.staff(), 'pushTokens', 'stu2')))
+    await assertFails(getDocs(collection(db.staff(), 'pushTokens')))
+    await assertFails(setDoc(doc(db.anon(), 'pushTokens', 'stu1'), tokens(['x'])))
   })
 })

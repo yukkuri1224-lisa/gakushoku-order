@@ -160,7 +160,7 @@ export function OrderStatusPage() {
           </dl>
         </section>
 
-        {order.status !== 'completed' && <NotifyCard orderId={order.id} />}
+        {order.status !== 'completed' && <NotifyCard className="mx-4 mt-4" />}
 
         <Section title="受け取り方">
           <ol className="list-decimal space-y-1 pl-5 text-[15px] leading-relaxed">

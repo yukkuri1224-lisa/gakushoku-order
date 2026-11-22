@@ -3,6 +3,7 @@ import { AppHeader } from '@/components/AppHeader'
 import { ActiveOrders } from '@/components/ActiveOrders'
 import { AccountLine } from '@/components/AccountLine'
 import { InstallGuide } from '@/components/InstallGuide'
+import { NotifyCard } from '@/components/NotifyCard'
 import { ChevronRightIcon, DiningIcon } from '@/components/icons'
 import { useDiningStore } from '@/store/dining'
 import { greeting } from '@/lib/greeting'
@@ -86,6 +87,8 @@ export function DiningPage() {
         <p className="mt-6 text-[13px] text-ink-sub">
           お持ち帰りは、容器代（20円）込みの価格になります。
         </p>
+
+        <NotifyCard className="mt-6" installHint={false} />
 
         <InstallGuide className="mt-8" />
 

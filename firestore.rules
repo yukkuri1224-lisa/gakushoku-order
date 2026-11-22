@@ -95,17 +95,15 @@ service cloud.firestore {
         && d.createdAt is int;
     }
 
-    // 調理完了の通知の宛先（注文ごと）。学生が自分の注文にだけ置ける。
-    // 読むのは通知を送るサーバー（/api/notify。ルールを通らない）だけで、ブラウザからはだれも読めない
-    match /pushTokens/{orderId} {
-      allow create, update: if isStudent()
-        && request.resource.data.keys().hasOnly(['token', 'uid', 'createdAt'])
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.token is string
-        && request.resource.data.token.size() > 0 && request.resource.data.token.size() <= 1000
-        && request.resource.data.createdAt is int
-        && get(/databases/$(database)/documents/orders/$(orderId)).data.uid == request.auth.uid;
-      allow read, delete: if false;
+    // 調理完了の通知の宛先（学生のアカウントごと。tokens に通知をオンにした端末を入れる）。
+    // 学生が自分の分だけ読み書きできる。通知を送るサーバー（/api/notify）はルールを通らずに読む
+    match /pushTokens/{uid} {
+      allow get, delete: if signedIn() && request.auth.uid == uid;
+      allow create, update: if isStudent() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['tokens', 'updatedAt'])
+        && request.resource.data.tokens is list && request.resource.data.tokens.size() <= 10
+        && request.resource.data.updatedAt is int;
+      allow list: if false;
     }
 
     // メニュー（食堂がメニュー管理で保存したもの）。だれでも読める。書けるのはスタッフだけ

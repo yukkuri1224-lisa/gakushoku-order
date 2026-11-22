@@ -3,22 +3,24 @@ import { handleNotify, parseServiceAccount } from './_notify-core.js'
 
 function deps(over = {}) {
   const sent = []
-  const deleted = []
+  const removed = []
   return {
     sent,
-    deleted,
+    removed,
     verifyIdToken: async (t) => {
       if (t !== 'good-token') throw new Error('bad token')
       return { uid: 'staff1' }
     },
     isStaff: async (uid) => uid === 'staff1',
-    getOrder: async (id) => (id === 'o1' ? { orderNumber: 7 } : null),
-    getPushToken: async (id) => (id === 'o1' ? 'fcm-token' : null),
+    getOrder: async (id) => (id === 'o1' ? { orderNumber: 7, uid: 'stu1' } : id === 'o3' ? { orderNumber: 8, uid: 'stu3' } : null),
+    // 学生ごと・端末ごとの通知の宛先（スマホとパソコンなど、いくつでも）
+    getPushTokens: async (uid) => (uid === 'stu1' ? ['phone-token', 'old-token'] : []),
     send: async (msg) => {
       sent.push(msg)
+      return { successCount: 1, invalidTokens: ['old-token'] }
     },
-    deletePushToken: async (id) => {
-      deleted.push(id)
+    removePushTokens: async (uid, tokens) => {
+      removed.push({ uid, tokens })
     },
     ...over,
   }
@@ -27,15 +29,21 @@ function deps(over = {}) {
 const req = (body, auth = 'Bearer good-token', method = 'POST') => ({ method, headers: { authorization: auth }, body })
 
 describe('調理完了の通知（サーバー）', () => {
-  it('スタッフが調理完了にした注文の学生へ、注文番号入りの通知を送る', async () => {
+  it('調理完了にした注文の学生の、通知をオンにした端末すべてへ、注文番号入りの通知を送る', async () => {
     const d = deps()
     const r = await handleNotify(req({ orderId: 'o1' }), d)
     expect(r).toEqual({ status: 200, body: { sent: true } })
     expect(d.sent).toHaveLength(1)
-    expect(d.sent[0].token).toBe('fcm-token')
+    expect(d.sent[0].tokens).toEqual(['phone-token', 'old-token'])
     expect(d.sent[0].data.title).toBe('できあがりました')
     expect(d.sent[0].data.body).toContain('注文番号 7')
     expect(d.sent[0].data.url).toBe('/order/o1')
+  })
+
+  it('使えなくなった宛先（アプリを消した等）は消しておく', async () => {
+    const d = deps()
+    await handleNotify(req({ orderId: 'o1' }), d)
+    expect(d.removed).toEqual([{ uid: 'stu1', tokens: ['old-token'] }])
   })
 
   it('ログインしていない・スタッフでない人からは送らない', async () => {
@@ -52,24 +60,11 @@ describe('調理完了の通知（サーバー）', () => {
     expect((await handleNotify(req({}), deps())).status).toBe(400)
   })
 
-  it('通知をオンにしていない注文は、何もせず sent: false', async () => {
+  it('注文がない・学生が通知をオンにしていないときは、何もせず sent: false', async () => {
     const d = deps()
-    const r = await handleNotify(req({ orderId: 'o2' }), d)
-    expect(r).toEqual({ status: 200, body: { sent: false } })
+    expect(await handleNotify(req({ orderId: 'nope' }), d)).toEqual({ status: 200, body: { sent: false } })
+    expect(await handleNotify(req({ orderId: 'o3' }), d)).toEqual({ status: 200, body: { sent: false } })
     expect(d.sent).toHaveLength(0)
-  })
-
-  it('使えなくなった通知先（アプリを消した等）は消しておく', async () => {
-    const d = deps({
-      send: async () => {
-        const e = new Error('gone')
-        e.code = 'messaging/registration-token-not-registered'
-        throw e
-      },
-    })
-    const r = await handleNotify(req({ orderId: 'o1' }), d)
-    expect(r).toEqual({ status: 200, body: { sent: false } })
-    expect(d.deleted).toEqual(['o1'])
   })
 })
 
