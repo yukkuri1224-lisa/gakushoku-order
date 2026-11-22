@@ -48,7 +48,8 @@ export function fromStored(id: string, d: StoredMenuItem): MenuItem {
     ...(d.description ? { description: d.description } : {}),
     ...(d.image ? { image: d.image } : {}),
     ...(d.badge ? { badge: d.badge } : {}),
-    ...(d.unit ? { unit: d.unit } : {}),
+    // 以前の表記「1こ」で保存したものも「1個」で出す
+    ...(d.unit ? { unit: d.unit === '1こ' ? '1個' : d.unit } : {}),
     ...(groups.length > 0 ? { optionGroups: groups } : {}),
     ...(d.hidden ? { hidden: true } : {}),
   }

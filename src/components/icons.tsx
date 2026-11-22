@@ -181,3 +181,12 @@ export function SearchIcon({ className }: IconProps) {
     </Icon>
   )
 }
+
+/** 上へ（矢印） */
+export function ArrowUpIcon({ className }: IconProps) {
+  return (
+    <Icon className={className}>
+      <path d="M12 19V5M5.5 11.5L12 5l6.5 6.5" />
+    </Icon>
+  )
+}

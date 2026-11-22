@@ -178,3 +178,31 @@ describe('食堂が編集したメニュー', () => {
     expect(el.textContent).toContain('ランチB')
   })
 })
+
+describe('メニュー画面の上と、上に戻るボタン', () => {
+  it('あいさつの枠は出さず、左上に「戻る」（ご利用方法の選択へ）を出す', () => {
+    const el = render()
+    expect(el.textContent).not.toContain('今日は、なにを食べる？')
+    const back = el.querySelector('a[aria-label="戻る"]')
+    expect(back?.getAttribute('href')).toBe('/start')
+  })
+
+  it('下までスクロールすると「いちばん上へ」が出て、押すと上に戻る', () => {
+    const el = render()
+    expect(el.querySelector('button[aria-label="いちばん上へ"]')).toBeNull()
+    let scrolledTo: unknown = null
+    window.scrollTo = ((opts: unknown) => {
+      scrolledTo = opts
+    }) as typeof window.scrollTo
+    Object.defineProperty(window, 'scrollY', { value: 900, configurable: true })
+    act(() => {
+      window.dispatchEvent(new Event('scroll'))
+    })
+    const top = el.querySelector('button[aria-label="いちばん上へ"]') as HTMLButtonElement
+    expect(top).not.toBeNull()
+    act(() => top.click())
+    expect(scrolledTo).toEqual({ top: 0, behavior: 'smooth' })
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true })
+  })
+})
+

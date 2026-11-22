@@ -262,7 +262,7 @@ export const MENU: MenuItem[] = [
     price: 230,
     category: HOT_SNACK,
     image: `${IMG}/kaori_age.jpg`,
-    unit: '1こ',
+    unit: '1個',
   },
   {
     id: 'karaage',
@@ -271,7 +271,7 @@ export const MENU: MenuItem[] = [
     price: 180,
     category: HOT_SNACK,
     image: `${IMG}/karaage.jpg`,
-    unit: '1こ',
+    unit: '1個',
   },
   {
     id: 'manzoku_croquette',
@@ -280,7 +280,7 @@ export const MENU: MenuItem[] = [
     price: 150,
     category: HOT_SNACK,
     image: `${IMG}/manzoku_croquette.jpg`,
-    unit: '1こ',
+    unit: '1個',
   },
   {
     id: 'croquette',
@@ -289,7 +289,7 @@ export const MENU: MenuItem[] = [
     price: 80,
     category: HOT_SNACK,
     image: `${IMG}/croquette.jpg`,
-    unit: '1こ',
+    unit: '1個',
   },
   {
     id: 'hash_potato',
@@ -298,7 +298,7 @@ export const MENU: MenuItem[] = [
     price: 150,
     category: HOT_SNACK,
     image: `${IMG}/hash_potato.jpg`,
-    unit: '1こ',
+    unit: '1個',
   },
   { id: 'fries', name: 'フライドポテト', yomi: 'ふらいどぽてと', price: 180, category: HOT_SNACK, image: `${IMG}/fries.jpg` },
 ]

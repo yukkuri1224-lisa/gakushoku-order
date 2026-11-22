@@ -20,7 +20,7 @@ export function MenuThumb({
   )
 }
 
-/** 価格（単位のある商品は「¥180 / 1こ」） */
+/** 価格（単位のある商品は「¥180 / 1個」） */
 export function MenuPrice({ item, className }: { item: MenuItem; className: string }) {
   return (
     <span className={`tabular-nums ${className}`}>

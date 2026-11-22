@@ -95,4 +95,10 @@ describe('メニューのデータ', () => {
   it('検索用の読み（ひらがな）がすべての商品にある', () => {
     for (const m of MENU) expect(m.yomi).toMatch(/^[ぁ-ゖー・ ]+$/)
   })
+
+  it('1 つずつの値段のものは「1個」と書く（「1こ」ではなく）', () => {
+    const units = MENU.filter((m) => m.unit).map((m) => m.unit)
+    expect(units.length).toBeGreaterThan(0)
+    expect(units.every((u) => u === '1個')).toBe(true)
+  })
 })

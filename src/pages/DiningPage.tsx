@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AppHeader } from '@/components/AppHeader'
 import { ActiveOrders } from '@/components/ActiveOrders'
 import { AccountLine } from '@/components/AccountLine'
 import { InstallGuide } from '@/components/InstallGuide'
 import { NotifyCard } from '@/components/NotifyCard'
+import { NotifyPrompt } from '@/components/NotifyPrompt'
 import { ChevronRightIcon, DiningIcon } from '@/components/icons'
 import { useDiningStore } from '@/store/dining'
 import { greeting } from '@/lib/greeting'
@@ -23,6 +25,8 @@ const OPTIONS: { option: DiningOption; description: string; note?: string }[] = 
 
 // ログイン（または合言葉）の直後の最初の画面。ご利用方法（店内／お持ち帰り）を選ぶとメニューへ進む。
 export function DiningPage() {
+  // ログインしたあとの「通知を受け取りますか？」に答えたら、下の通知のカードも新しくする
+  const [notifyKey, setNotifyKey] = useState(0)
   const navigate = useNavigate()
   const current = useDiningStore((s) => s.option)
   const setOption = useDiningStore((s) => s.setOption)
@@ -88,7 +92,7 @@ export function DiningPage() {
           お持ち帰りは、容器代（20円）込みの価格になります。
         </p>
 
-        <NotifyCard className="mt-6" installHint={false} />
+        <NotifyCard key={notifyKey} className="mt-6" installHint={false} />
 
         <InstallGuide className="mt-8" />
 
@@ -102,6 +106,7 @@ export function DiningPage() {
           </Link>
         </div>
       </main>
+      <NotifyPrompt onAnswered={() => setNotifyKey((k) => k + 1)} />
     </div>
   )
 }

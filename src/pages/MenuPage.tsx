@@ -6,9 +6,9 @@ import { AppHeader } from '@/components/AppHeader'
 import { MenuCard } from '@/components/MenuCard'
 import { ItemSheet } from '@/components/ItemSheet'
 import { ActiveOrders } from '@/components/ActiveOrders'
+import { ScrollTopButton } from '@/components/ScrollTopButton'
 import { ChevronRightIcon, DiningIcon, SearchIcon } from '@/components/icons'
 import { useSoldOut } from '@/hooks/useSoldOut'
-import { greeting } from '@/lib/greeting'
 import { searchMenu } from '@/lib/menuSearch'
 import { CONTAINER_FEE, TOP_CONTAINER_FEE, forDining } from '@/lib/takeout'
 import { cartCount, cartTotal, useCartStore } from '@/store/cart'
@@ -109,29 +109,25 @@ export function MenuPage() {
 
   return (
     <div className="min-h-dvh pb-36">
-      <AppHeader title="LiSA校食堂" cartCount={count} />
+      <AppHeader title="LiSA校食堂" back="/start" cartCount={count} />
 
       <main className="mx-auto max-w-md">
-        {/* あいさつと、いまのご利用方法 */}
-        <section className="px-4 pt-4">
-          <div className="rounded-2xl bg-white px-5 py-4 shadow-card">
-            <p className="text-[13px] font-bold text-ink-sub">{greeting()}</p>
-            <p className="mt-0.5 text-xl font-bold leading-snug">今日は、なにを食べる？</p>
-            <Link
-              to="/start"
-              aria-label={`ご利用方法を変更（いまは${dining ? DINING_LABEL[dining] : '未選択'}）`}
-              className="mt-3 inline-flex h-9 items-center gap-1 rounded-full bg-cream pl-3 pr-2 text-[13px] font-bold text-ink"
-            >
-              {dining && <DiningIcon option={dining} className="h-4 w-4" />}
-              {dining ? DINING_LABEL[dining] : 'ご利用方法'}
-              <ChevronRightIcon className="h-4 w-4 text-ink-sub" />
-            </Link>
-          </div>
-        </section>
-
         <ActiveOrders className="px-4 pt-4" />
 
-        <h2 className="px-4 pt-6 text-xl font-bold">メニュー</h2>
+        <div className="flex items-center justify-between gap-3 px-4 pt-5">
+          <h2 className="text-xl font-bold">メニュー</h2>
+          {dining && (
+            <Link
+              to="/start"
+              aria-label={`ご利用方法を変更（いまは${DINING_LABEL[dining]}）`}
+              className="inline-flex h-9 items-center gap-1 rounded-full bg-white pl-3 pr-2 text-[13px] font-bold text-ink shadow-card"
+            >
+              <DiningIcon option={dining} className="h-4 w-4" />
+              {DINING_LABEL[dining]}
+              <ChevronRightIcon className="h-4 w-4 text-ink-sub" />
+            </Link>
+          )}
+        </div>
 
         <div className="px-4 pt-3">
           <label className="flex h-12 items-center gap-2 rounded-full bg-white px-4 shadow-card focus-within:ring-2 focus-within:ring-ink">
@@ -277,6 +273,9 @@ export function MenuPage() {
           </div>
         </div>
       )}
+
+      {/* 下までスクロールしたら、いちばん上へ（カートのボタンがあるときはその上に） */}
+      <ScrollTopButton raised={count > 0} />
 
       {openItem && (
         <ItemSheet

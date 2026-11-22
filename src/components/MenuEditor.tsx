@@ -397,7 +397,7 @@ function MenuItemForm({ item, onClose }: { item: MenuItem | null; onClose: () =>
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 maxLength={6}
-                placeholder="1こ"
+                placeholder="1個"
                 className={`${fieldClass} border-ink-line`}
               />
             </label>

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { itemKey } from '@/lib/menuOptions'
 import { formatPickup } from '@/lib/pickup'
 import { useActiveOrders, useCompletionAlert, useOrder } from '@/hooks/useOrders'
@@ -7,7 +7,6 @@ import { AppHeader } from '@/components/AppHeader'
 import { OptionTags } from '@/components/OptionTags'
 import { ReadyOverlay } from '@/components/ReadyOverlay'
 import { Section } from '@/components/Section'
-import { SoundButton } from '@/components/SoundButton'
 import { WaitingNote } from '@/components/WaitingNote'
 import { NotifyCard } from '@/components/NotifyCard'
 import { CheckIcon } from '@/components/icons'
@@ -82,6 +81,12 @@ export function OrderStatusPage() {
   const active = useActiveOrders()
   const watched = useMemo(() => (order ? [order] : []), [order])
   const { ready, dismiss } = useCompletionAlert(watched)
+  const navigate = useNavigate()
+  // 受け取ったら、元の注文の画面（メニュー）に戻る
+  const received = () => {
+    dismiss()
+    navigate('/menu')
+  }
 
   if (loading) {
     return (
@@ -116,7 +121,7 @@ export function OrderStatusPage() {
 
   return (
     <div className="min-h-dvh pb-10">
-      <AppHeader title="LiSA校食堂" />
+      <AppHeader title="注文の状況" back="/menu" />
       <main className="mx-auto max-w-md">
         {done ? (
           <div
@@ -135,7 +140,6 @@ export function OrderStatusPage() {
             <p className="mt-1 text-[13px] text-ink-sub">
               できあがったら、この画面と通知音でお知らせします
             </p>
-            <SoundButton className="mt-3" />
           </div>
         )}
 
@@ -203,16 +207,19 @@ export function OrderStatusPage() {
           </p>
         </Section>
 
-        <div className="px-4 pt-5">
-          <Link
-            to="/menu"
-            className="flex h-14 w-full items-center justify-center rounded-full bg-white font-bold text-brand shadow-card"
-          >
-            追加で注文する
-          </Link>
-        </div>
+        {done && (
+          <div className="px-4 pt-5">
+            <button
+              type="button"
+              onClick={received}
+              className="flex h-14 w-full items-center justify-center rounded-full bg-brand font-bold text-white shadow-float"
+            >
+              受け取りました
+            </button>
+          </div>
+        )}
       </main>
-      {ready && <ReadyOverlay order={ready} onClose={dismiss} />}
+      {ready && <ReadyOverlay order={ready} onClose={received} />}
     </div>
   )
 }
