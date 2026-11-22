@@ -277,3 +277,37 @@ describe('食堂スタッフ（staffMembers にあるアカウント）', () => 
     await assertFails(updateDoc(doc(f, 'orders', 'o1'), { status: 'preparing' }))
   })
 })
+
+describe('メニュー（menuItems）', () => {
+  const dish = { name: '親子丼', price: 450, category: '定食', sortOrder: 24, options: ['size'] }
+
+  it('だれでも読める（ログインしていなくても）', async () => {
+    await seed((f) => setDoc(doc(f, 'menuItems', 'oyakodon'), dish))
+    await assertSucceeds(getDoc(doc(db.anon(), 'menuItems', 'oyakodon')))
+    await assertSucceeds(getDocs(collection(db.student(), 'menuItems')))
+  })
+
+  it('スタッフは追加・変更・削除できる', async () => {
+    const f = db.staff()
+    await assertSucceeds(setDoc(doc(f, 'menuItems', 'oyakodon'), dish))
+    await assertSucceeds(setDoc(doc(f, 'menuItems', 'oyakodon'), { ...dish, price: 480, hidden: true, sortOrder: 2.5 }))
+    await assertSucceeds(deleteDoc(doc(f, 'menuItems', 'oyakodon')))
+  })
+
+  it('学生・ログインしていない人は書き換えられない', async () => {
+    await seed((f) => setDoc(doc(f, 'menuItems', 'curry'), { ...dish, name: 'カレーライス' }))
+    await assertFails(setDoc(doc(db.student(), 'menuItems', 'curry'), { ...dish, price: 0 }))
+    await assertFails(deleteDoc(doc(db.student(), 'menuItems', 'curry')))
+    await assertFails(setDoc(doc(db.anon(), 'menuItems', 'new'), dish))
+  })
+
+  it('おかしな中身は、スタッフでも保存できない', async () => {
+    const f = db.staff()
+    await assertFails(setDoc(doc(f, 'menuItems', 'x1'), { ...dish, price: -1 }))
+    await assertFails(setDoc(doc(f, 'menuItems', 'x2'), { ...dish, price: 12.5 }))
+    await assertFails(setDoc(doc(f, 'menuItems', 'x3'), { ...dish, category: 'ピザ' }))
+    await assertFails(setDoc(doc(f, 'menuItems', 'x4'), { ...dish, name: '' }))
+    await assertFails(setDoc(doc(f, 'menuItems', 'x5'), { ...dish, image: 'x'.repeat(200001) }))
+    await assertFails(setDoc(doc(f, 'menuItems', 'x6'), { ...dish, secret: true }))
+  })
+})

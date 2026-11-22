@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { HOT_SNACK, MEAL_CATEGORIES, MENU, isHotSnack, type MenuItem } from '@/data/menu'
+import { HOT_SNACK, MEAL_CATEGORIES, isHotSnack, type MenuItem } from '@/data/menu'
+import { useMenu, visibleMenu } from '@/store/menu'
 import { AppHeader } from '@/components/AppHeader'
 import { MenuCard } from '@/components/MenuCard'
 import { ItemSheet } from '@/components/ItemSheet'
@@ -37,6 +38,8 @@ export function MenuPage() {
   const dining = useDiningStore((s) => s.option)
   const showToast = useToast((s) => s.show)
   const soldOut = useSoldOut()
+  const allItems = useMenu()
+  const menu = useMemo(() => visibleMenu(allItems), [allItems])
   const [openItem, setOpenItem] = useState<MenuItem | null>(null)
   const [frame, setFrame] = useState<Frame>('meal')
   const [genre, setGenre] = useState(ALL)
@@ -53,17 +56,17 @@ export function MenuPage() {
         ? MEAL_CATEGORIES
         : MEAL_CATEGORIES.filter((c) => c === genre)
   const searching = query.trim().length > 0
-  const results = useMemo(() => searchMenu(MENU, query), [query])
+  const results = useMemo(() => searchMenu(menu, query), [menu, query])
 
   // 商品ごとのカート内数量（選択肢違いの行も合算）
   const qtyByItem = useMemo(() => {
     const m = new Map<string, number>()
     for (const i of items) {
-      const id = i.menuItemId ?? MENU.find((x) => x.name === i.name)?.id
+      const id = i.menuItemId ?? menu.find((x) => x.name === i.name)?.id
       if (id) m.set(id, (m.get(id) ?? 0) + i.quantity)
     }
     return m
-  }, [items])
+  }, [items, menu])
 
   const close = useCallback(() => setOpenItem(null), [])
 
@@ -225,7 +228,7 @@ export function MenuPage() {
 
             <div ref={listRef} className="px-4">
               {shownCategories.map((cat) => {
-                const list = MENU.filter((m) => m.category === cat)
+                const list = menu.filter((m) => m.category === cat)
                 if (list.length === 0) return null
                 return (
                   <section key={cat} className="pt-4">

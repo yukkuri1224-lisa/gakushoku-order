@@ -5,6 +5,8 @@ import { MemoryRouter } from 'react-router-dom'
 import { MenuPage } from './MenuPage'
 import { useCartStore } from '@/store/cart'
 import { useDiningStore } from '@/store/dining'
+import { useMenuStore } from '@/store/menu'
+import { MENU } from '@/data/menu'
 import { getSoldOutRepository } from '@/lib/soldOut'
 import { todayKey } from '@/lib/orders/types'
 
@@ -18,6 +20,7 @@ beforeEach(() => {
   localStorage.clear()
   useCartStore.setState({ items: [] })
   useDiningStore.setState({ option: 'eat_in' })
+  useMenuStore.setState({ items: MENU, custom: false })
 })
 
 afterEach(() => {
@@ -155,5 +158,23 @@ describe('お持ち帰りの価格', () => {
     const card = [...el.querySelectorAll('button')].find((b) => b.textContent?.includes('カレーライス'))!
     expect(card.textContent).toContain('¥480')
     expect(el.textContent).not.toContain('容器代（20円）込み')
+  })
+})
+
+describe('食堂が編集したメニュー', () => {
+  it('追加した料理はそのジャンルに出て、「メニューに出さない」にした料理は出ない（検索にも出ない）', () => {
+    useMenuStore.setState({
+      items: [
+        ...MENU.map((m) => (m.id === 'lunch_a' ? { ...m, hidden: true } : m)),
+        { id: 'oyakodon', name: '親子丼', yomi: 'おやこどん', price: 450, category: '定食' },
+      ],
+      custom: true,
+    })
+    const el = render()
+    expect(el.textContent).toContain('親子丼')
+    expect(el.textContent).not.toContain('ランチA')
+    type(searchBox(el), 'らんち')
+    expect(el.textContent).not.toContain('ランチA')
+    expect(el.textContent).toContain('ランチB')
   })
 })

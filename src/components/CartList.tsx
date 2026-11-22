@@ -1,4 +1,4 @@
-import { MENU } from '@/data/menu'
+import { useMenu } from '@/store/menu'
 import { itemKey } from '@/lib/menuOptions'
 import { MenuThumb } from '@/components/MenuThumb'
 import { QuantityStepper } from '@/components/QuantityStepper'
@@ -20,11 +20,12 @@ export function CartList({
   onDec: (key: string) => void
   onRemove: (key: string) => void
 }) {
+  const menu = useMenu()
   return (
     <ul className="border-t border-ink-line">
       {items.map((i) => {
         const key = itemKey(i)
-        const menuItem = MENU.find(
+        const menuItem = menu.find(
           (m) => m.id === i.menuItemId || m.name === i.name,
         )
         const soldOut = menuItem !== undefined && soldOutIds.has(menuItem.id)

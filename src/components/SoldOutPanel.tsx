@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { MENU, MENU_CATEGORIES } from '@/data/menu'
+import { MENU_CATEGORIES } from '@/data/menu'
+import { useMenu, visibleMenu } from '@/store/menu'
 import { MenuThumb } from '@/components/MenuThumb'
 import { getSoldOutRepository } from '@/lib/soldOut'
 import { todayKey } from '@/lib/orders/types'
@@ -8,6 +9,7 @@ import { todayKey } from '@/lib/orders/types'
 // 売り切れはその日だけ（次の日は自動で販売中に戻る）。注文画面にはすぐ反映される。
 export function SoldOutPanel({ soldOut }: { soldOut: Set<string> }) {
   const [error, setError] = useState<string | null>(null)
+  const menu = visibleMenu(useMenu())
 
   const toggle = async (id: string) => {
     setError(null)
@@ -35,7 +37,7 @@ export function SoldOutPanel({ soldOut }: { soldOut: Set<string> }) {
         <section key={cat} className="pt-5">
           <h2 className="pb-2 text-base font-bold">{cat}</h2>
           <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {MENU.filter((m) => m.category === cat).map((m) => {
+            {menu.filter((m) => m.category === cat).map((m) => {
               const out = soldOut.has(m.id)
               return (
                 <li

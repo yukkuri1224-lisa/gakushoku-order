@@ -40,10 +40,14 @@ export function includesContainer(item: MenuItem, dining: DiningOption | null): 
  * ご利用方法を変えたときに、カートの行を作り直す（選んだ麺・サイズなどはそのまま）。
  * 容器代を足し引きし、同じ中身になった行はまとめる。メニューにない古い行はそのまま。
  */
-export function repriceLines(lines: OrderItem[], dining: DiningOption | null): OrderItem[] {
+export function repriceLines(
+  lines: OrderItem[],
+  dining: DiningOption | null,
+  menu: MenuItem[] = MENU,
+): OrderItem[] {
   const out: OrderItem[] = []
   for (const line of lines) {
-    const base = line.menuItemId ? MENU.find((m) => m.id === line.menuItemId) : undefined
+    const base = line.menuItemId ? menu.find((m) => m.id === line.menuItemId) : undefined
     if (!base) {
       out.push(line)
       continue

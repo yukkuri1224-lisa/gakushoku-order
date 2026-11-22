@@ -242,7 +242,7 @@ describe('厨房ボードの入口（スタッフのアカウント）', () => {
         signedOut = true
       },
     )
-    expect(el.querySelectorAll('[role="tab"]')).toHaveLength(3)
+    expect(el.querySelectorAll('[role="tab"]')).toHaveLength(4)
     expect(el.textContent).toContain('kitchen@example.com')
     const logout = [...el.querySelectorAll('button')].find((b) => b.textContent === 'ログアウト')!
     await act(async () => logout.click())
@@ -251,7 +251,7 @@ describe('厨房ボードの入口（スタッフのアカウント）', () => {
 
   it('学校の Google アカウントでも、スタッフの名簿にあれば厨房ボードを使える（管理者）', () => {
     const el = renderGate({ status: 'signedIn', email: 'admin@gl.pen-kanagawa.ed.jp', uid: 'a1', student: true, staff: true })
-    expect(el.querySelectorAll('[role="tab"]')).toHaveLength(3)
+    expect(el.querySelectorAll('[role="tab"]')).toHaveLength(4)
   })
 
   it('ログイン画面に「Google でログイン」があり、押すと Google でのログインを始める', async () => {

@@ -1,8 +1,8 @@
 // デモ用メニュー定数（LiSA校食堂の掲示「Basic MENU」「軽食メニュー」より）。
 // 画像は public/menu/illust（いただいたイラスト）と public/menu/irasutoya（いらすとや）。どちらもイメージ。
-// ▼本番化の差し替えポイント（メニュー供給元）:
-//   メニューはここのコード内定数で持つ（Firestore からは取得しない）。
-//   将来 CMS や管理画面から取得したい場合は、この配列を返す関数に置き換える。
+// ▼メニューの供給元:
+//   ここの MENU は「はじめから入っているメニュー」。食堂がメニュー管理（厨房ボードの「メニュー」）で
+//   保存すると Firestore の menuItems に移り、以後はそちらを使う（src/lib/menu, src/store/menu.ts）。
 //
 //   選択肢（サイズ・トッピングなど）は optionGroups に「1つ選ぶ」グループとして持つ。
 //   defaultChoiceId のあるグループは最初から選ばれている。無いグループ（うどん／そば）は
@@ -34,6 +34,7 @@ export interface MenuItem {
   unit?: string // 価格の単位（例: 1こ）。一覧・商品シートで価格の後ろに出す
   yomi?: string // 検索用の読み（ひらがな）。「からあげ」で「唐揚カレー」も見つかるように
   optionGroups?: OptionGroup[]
+  hidden?: boolean // 食堂が「表示しない」にした商品（学生のメニューに出さない）
 }
 
 const SIZE: OptionGroup = {
@@ -79,6 +80,9 @@ const NEGI: OptionGroup = {
   ],
 }
 
+/** 食堂のメニュー管理で付け外しできる選択肢（この順に並ぶ） */
+export const OPTION_PRESETS: OptionGroup[] = [NOODLE, SIZE, NEGI, FUKUJINZUKE]
+
 /** ホットスナック（券売機とは別の枠。メニュー画面でも別のタブで出す） */
 export const HOT_SNACK = 'ホットスナック'
 
@@ -94,6 +98,15 @@ export function isHotSnack(item: Pick<MenuItem, 'category'>): boolean {
 
 const IMG = '/menu/irasutoya'
 const ILLUST = '/menu/illust'
+
+/** メニュー管理で選べる画像（public/menu にあるもの） */
+export const MENU_IMAGES: string[] = [
+  ...['set_meal', 'kake', 'kitsune', 'curry_noodle', 'curry', 'katsu_curry', 'takoyaki', 'hamkatsu',
+    'yakisoba', 'kaori_age', 'karaage', 'manzoku_croquette', 'croquette', 'hash_potato', 'fries'].map(
+    (n) => `${IMG}/${n}.jpg`,
+  ),
+  ...['ramen', 'wonton_ramen', 'wakame', 'tanuki', 'karaage_curry'].map((n) => `${ILLUST}/${n}.jpg`),
+]
 
 export const MENU: MenuItem[] = [
   // 定食（中身は日によって変わるため説明は書かない。画像は定食のイメージ）

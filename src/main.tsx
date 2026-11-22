@@ -3,12 +3,14 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { installSoundUnlock } from './lib/sound'
+import { startMenuSync } from './store/menu'
 import { captureInstallPrompt } from './lib/install'
 import { registerSW } from 'virtual:pwa-register'
 import './index.css'
 
 // 最初のタップで通知音の準備をする（ブラウザはタップ前のページから音を出させない）
 installSoundUnlock()
+startMenuSync()
 // 「ホーム画面に追加」の合図を受け取っておく（Android の Chrome など）
 captureInstallPrompt()
 // 新しい版を公開したら、開いている画面も自動で新しい版に読み込み直す（古い画面が残らないように）。

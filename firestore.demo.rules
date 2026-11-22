@@ -16,5 +16,8 @@ service cloud.firestore {
     match /dailyCounters/{dateId} {
       allow read, write: if true;
     }
+    match /menuItems/{itemId} {
+      allow read, write: if true;
+    }
   }
 }

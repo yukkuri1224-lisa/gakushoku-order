@@ -5,6 +5,7 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { itemKey } from '@/lib/menuOptions'
 import { repriceLines } from '@/lib/takeout'
+import { useMenuStore } from '@/store/menu'
 import type { DiningOption, OrderItem } from '@/types/order'
 
 interface CartState {
@@ -54,7 +55,8 @@ export const useCartStore = create<CartState>()(
       remove: (key) =>
         set((s) => ({ items: s.items.filter((i) => itemKey(i) !== key) })),
       clear: () => set({ items: [] }),
-      reprice: (dining) => set((s) => ({ items: repriceLines(s.items, dining) })),
+      reprice: (dining) =>
+        set((s) => ({ items: repriceLines(s.items, dining, useMenuStore.getState().items) })),
     }),
     {
       name: 'gakushoku.cart',

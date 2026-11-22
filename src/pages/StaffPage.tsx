@@ -8,6 +8,7 @@ import { ProcessingScreen } from '@/components/ProcessingScreen'
 import { StaffLoginScreen } from '@/components/StaffLoginScreen'
 import { SoldOutPanel } from '@/components/SoldOutPanel'
 import { UsagePanel } from '@/components/UsagePanel'
+import { MenuEditor } from '@/components/MenuEditor'
 import { SoundButton } from '@/components/SoundButton'
 import { MealgoWordmark } from '@/components/Logo'
 import { useLoginState } from '@/hooks/useLogin'
@@ -20,7 +21,8 @@ import {
   type LoginState,
 } from '@/lib/auth'
 import { STAFF_KEY, STAFF_PASSWORD, isGateOpen, openGate } from '@/lib/gate'
-import { HOT_SNACK, MENU, isHotSnack } from '@/data/menu'
+import { HOT_SNACK, isHotSnack, type MenuItem } from '@/data/menu'
+import { useMenu } from '@/store/menu'
 import {
   DINING_SHORT,
   type DiningOption,
@@ -137,8 +139,8 @@ function DiningBadge({ option }: { option: DiningOption }) {
 }
 
 /** ホットスナックの行か（メニューから分かる行だけ） */
-function isHotSnackLine(i: OrderItem): boolean {
-  const m = MENU.find((x) => x.id === i.menuItemId)
+function isHotSnackLine(i: OrderItem, menu: MenuItem[]): boolean {
+  const m = menu.find((x) => x.id === i.menuItemId)
   return m ? isHotSnack(m) : false
 }
 
@@ -175,8 +177,9 @@ function StaffBoard({
   account?: { email: string; onSignOut: () => Promise<void> }
 }) {
   const [orders, setOrders] = useState<Order[]>([])
-  const [tab, setTab] = useState<'orders' | 'soldOut' | 'usage'>('orders')
+  const [tab, setTab] = useState<'orders' | 'soldOut' | 'menu' | 'usage'>('orders')
   const soldOut = useSoldOut()
+  const menu = useMenu()
   const knownIds = useRef<Set<string> | null>(null)
   const repo = getOrderRepository()
 
@@ -201,7 +204,7 @@ function StaffBoard({
   }
 
   const tabClass = (active: boolean) =>
-    `flex h-11 items-center gap-1.5 rounded-full px-4 text-sm font-bold ${
+    `flex h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-4 text-sm font-bold ${
       active ? 'bg-ink text-white' : 'bg-white text-ink shadow-card'
     }`
 
@@ -227,7 +230,7 @@ function StaffBoard({
       </header>
 
       <div className="mx-auto max-w-5xl px-4 pt-4">
-        <div role="tablist" aria-label="厨房ボードの表示" className="flex gap-2">
+        <div role="tablist" aria-label="厨房ボードの表示" className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
           <button
             type="button"
             role="tab"
@@ -255,6 +258,15 @@ function StaffBoard({
           <button
             type="button"
             role="tab"
+            aria-selected={tab === 'menu'}
+            onClick={() => setTab('menu')}
+            className={tabClass(tab === 'menu')}
+          >
+            メニュー
+          </button>
+          <button
+            type="button"
+            role="tab"
             aria-selected={tab === 'usage'}
             onClick={() => setTab('usage')}
             className={tabClass(tab === 'usage')}
@@ -264,7 +276,11 @@ function StaffBoard({
         </div>
       </div>
 
-      {tab === 'usage' ? (
+      {tab === 'menu' ? (
+        <main className="mx-auto max-w-5xl p-4">
+          <MenuEditor />
+        </main>
+      ) : tab === 'usage' ? (
         <main className="mx-auto max-w-3xl p-4">
           <UsagePanel />
         </main>
@@ -319,11 +335,11 @@ function StaffBoard({
                   )}
 
                   <div className="mt-3 flex-1">
-                    <OrderLines items={o.items.filter((i) => !isHotSnackLine(i))} />
-                    {o.items.some(isHotSnackLine) && (
+                    <OrderLines items={o.items.filter((i) => !isHotSnackLine(i, menu))} />
+                    {o.items.some((i) => isHotSnackLine(i, menu)) && (
                       <>
                         <p className="mt-3 text-xs font-bold text-ink-sub">{HOT_SNACK}</p>
-                        <OrderLines items={o.items.filter(isHotSnackLine)} />
+                        <OrderLines items={o.items.filter((i) => isHotSnackLine(i, menu))} />
                       </>
                     )}
                   </div>
