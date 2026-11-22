@@ -62,5 +62,6 @@ describe('利用状況のための注文の読み出し', () => {
     const list = await repo.listOrdersSince(0)
     expect(list.map((o) => o.id)).toContain(a.id)
     expect(await repo.listOrdersSince(Date.now() + 60_000)).toEqual([])
+    expect(await repo.listOrdersSince(0, 1)).toEqual([])
   })
 })

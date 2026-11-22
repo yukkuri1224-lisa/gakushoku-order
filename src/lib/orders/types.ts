@@ -34,8 +34,11 @@ export interface OrderRepository {
   /** 注文の状態を更新（preparing / completed）。 */
   updateStatus(id: string, status: OrderStatus): Promise<void>
 
-  /** 指定した時刻（epoch ミリ秒）以降の注文を、終わったものも含めて返す（スタッフの利用状況用）。 */
-  listOrdersSince(since: number): Promise<Order[]>
+  /**
+   * 指定した時刻（epoch ミリ秒）以降・until より前の注文を、終わったものも含めて返す
+   * （スタッフの利用状況・売上集計用）。until を省くと今まで。
+   */
+  listOrdersSince(since: number, until?: number): Promise<Order[]>
 
   /**
    * PayPay へ移る前に、注文の中身を支払いIDで預ける。

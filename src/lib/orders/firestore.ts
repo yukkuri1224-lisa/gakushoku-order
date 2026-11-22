@@ -91,11 +91,11 @@ export class FirestoreOrderRepository implements OrderRepository {
     })
   }
 
-  async listOrdersSince(since: number): Promise<Order[]> {
+  async listOrdersSince(since: number, until?: number): Promise<Order[]> {
     // createdAt だけの範囲指定（複合インデックス不要）。支払い中に預けた中身（pending-…）は除く
-    const snap = await getDocs(
-      query(collection(this.db, 'orders'), where('createdAt', '>=', since)),
-    )
+    const constraints = [where('createdAt', '>=', since)]
+    if (until !== undefined) constraints.push(where('createdAt', '<', until))
+    const snap = await getDocs(query(collection(this.db, 'orders'), ...constraints))
     return snap.docs
       .map((d) => ({ id: d.id, ...(d.data() as Omit<Order, 'id'>) }))
       .filter((o) => o.status === 'paid' || o.status === 'preparing' || o.status === 'completed')

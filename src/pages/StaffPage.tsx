@@ -9,6 +9,7 @@ import { StaffLoginScreen } from '@/components/StaffLoginScreen'
 import { SoldOutPanel } from '@/components/SoldOutPanel'
 import { UsagePanel } from '@/components/UsagePanel'
 import { MenuEditor } from '@/components/MenuEditor'
+import { SalesPanel } from '@/components/SalesPanel'
 import { SoundButton } from '@/components/SoundButton'
 import { MealgoWordmark } from '@/components/Logo'
 import { useLoginState } from '@/hooks/useLogin'
@@ -177,7 +178,7 @@ function StaffBoard({
   account?: { email: string; onSignOut: () => Promise<void> }
 }) {
   const [orders, setOrders] = useState<Order[]>([])
-  const [tab, setTab] = useState<'orders' | 'soldOut' | 'menu' | 'usage'>('orders')
+  const [tab, setTab] = useState<'orders' | 'soldOut' | 'menu' | 'usage' | 'sales'>('orders')
   const soldOut = useSoldOut()
   const menu = useMenu()
   const knownIds = useRef<Set<string> | null>(null)
@@ -273,10 +274,23 @@ function StaffBoard({
           >
             利用状況
           </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'sales'}
+            onClick={() => setTab('sales')}
+            className={tabClass(tab === 'sales')}
+          >
+            売上
+          </button>
         </div>
       </div>
 
-      {tab === 'menu' ? (
+      {tab === 'sales' ? (
+        <main className="mx-auto max-w-3xl p-4">
+          <SalesPanel />
+        </main>
+      ) : tab === 'menu' ? (
         <main className="mx-auto max-w-5xl p-4">
           <MenuEditor />
         </main>

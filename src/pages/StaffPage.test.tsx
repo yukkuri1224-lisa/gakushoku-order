@@ -200,6 +200,39 @@ describe('利用状況（スタッフだけ）', () => {
   })
 })
 
+describe('売上集計（スタッフだけ）', () => {
+  it('「売上」のタブで、今日の売上とメニューごとの売上を出し、月に切り替えると日ごとも出す', async () => {
+    const repo = getOrderRepository()
+    await repo.createOrder({ items, total: 480, diningOption: 'eat_in' }, 'mock')
+    await repo.createOrder(
+      { items: [{ menuItemId: 'takoyaki', name: 'たこ焼き', price: 270, quantity: 2 }], total: 540, diningOption: 'takeout' },
+      'mock',
+    )
+    container = document.createElement('div')
+    document.body.appendChild(container)
+    root = createRoot(container)
+    act(() =>
+      root!.render(
+        <MemoryRouter>
+          <StaffPage />
+        </MemoryRouter>,
+      ),
+    )
+    const tab = [...container.querySelectorAll('[role="tab"]')].find((t) => t.textContent === '売上') as HTMLButtonElement
+    await act(async () => tab.click())
+    const panel = container.querySelector('[aria-label="売上集計"]')!
+    expect(panel.textContent).toContain('¥1,020')
+    expect(panel.textContent).toContain('メニューごとの売上')
+    expect(panel.textContent).toContain('たこ焼き')
+    expect(panel.textContent).not.toContain('日ごとの売上')
+
+    const month = [...panel.querySelectorAll('button')].find((b) => b.textContent === '月')!
+    await act(async () => month.click())
+    expect(panel.textContent).toContain('日ごとの売上')
+    expect(panel.textContent).toContain('¥1,020')
+  })
+})
+
 describe('厨房ボードの入口（スタッフのアカウント）', () => {
   function renderGate(login: LoginState, onSignOut = async () => {}, onGoogleSignIn = async () => {}) {
     container = document.createElement('div')
@@ -242,7 +275,7 @@ describe('厨房ボードの入口（スタッフのアカウント）', () => {
         signedOut = true
       },
     )
-    expect(el.querySelectorAll('[role="tab"]')).toHaveLength(4)
+    expect(el.querySelectorAll('[role="tab"]')).toHaveLength(5)
     expect(el.textContent).toContain('kitchen@example.com')
     const logout = [...el.querySelectorAll('button')].find((b) => b.textContent === 'ログアウト')!
     await act(async () => logout.click())
@@ -251,7 +284,7 @@ describe('厨房ボードの入口（スタッフのアカウント）', () => {
 
   it('学校の Google アカウントでも、スタッフの名簿にあれば厨房ボードを使える（管理者）', () => {
     const el = renderGate({ status: 'signedIn', email: 'admin@gl.pen-kanagawa.ed.jp', uid: 'a1', student: true, staff: true })
-    expect(el.querySelectorAll('[role="tab"]')).toHaveLength(4)
+    expect(el.querySelectorAll('[role="tab"]')).toHaveLength(5)
   })
 
   it('ログイン画面に「Google でログイン」があり、押すと Google でのログインを始める', async () => {
