@@ -29,7 +29,7 @@ export async function handleNotify(req, deps) {
   }
   if (!(await deps.isStaff(uid))) return { status: 403, body: { error: 'スタッフだけが使えます' } }
 
-  const body = typeof req.body === 'string' ? safeJson(req.body) : (req.body ?? {})
+  const body = (typeof req.body === 'string' ? safeJson(req.body) : req.body) ?? {}
   const orderId = typeof body.orderId === 'string' ? body.orderId : ''
   if (!orderId || orderId.length > 200) return { status: 400, body: { error: 'orderId が必要です' } }
 
@@ -62,6 +62,24 @@ function safeJson(text) {
   try {
     return JSON.parse(text)
   } catch {
-    return {}
+    return null
   }
+}
+
+/**
+ * Vercel の環境変数 FIREBASE_SERVICE_ACCOUNT（サービスアカウントの JSON）を読む。
+ * 貼り付けたときに 1 行にまとめられた・鍵の改行が \n の文字のまま・鍵の中に本物の改行が入った、でも読めるようにする。
+ * 読めない・必要な項目がないときは null。
+ * @param {string | undefined} raw
+ */
+export function parseServiceAccount(raw) {
+  const text = (raw ?? '').trim()
+  if (!text) return null
+  const obj = safeJson(text) ?? safeJson(text.replace(/\r?\n/g, '\\n'))
+  if (!obj || typeof obj !== 'object') return null
+  const { project_id: projectId, client_email: clientEmail, private_key: privateKey } = obj
+  if (typeof projectId !== 'string' || typeof clientEmail !== 'string' || typeof privateKey !== 'string') {
+    return null
+  }
+  return { ...obj, private_key: privateKey.replace(/\\n/g, '\n') }
 }

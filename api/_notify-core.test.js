@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { handleNotify } from './_notify-core.js'
+import { handleNotify, parseServiceAccount } from './_notify-core.js'
 
 function deps(over = {}) {
   const sent = []
@@ -70,5 +70,32 @@ describe('調理完了の通知（サーバー）', () => {
     const r = await handleNotify(req({ orderId: 'o1' }), d)
     expect(r).toEqual({ status: 200, body: { sent: false } })
     expect(d.deleted).toEqual(['o1'])
+  })
+})
+
+describe('サービスアカウントの JSON の読み取り（Vercel に貼った値）', () => {
+  const sa = { type: 'service_account', project_id: 'p', client_email: 'x@p.iam.gserviceaccount.com', private_key: '-----BEGIN PRIVATE KEY-----\nAAA\n-----END PRIVATE KEY-----\n' }
+
+  it('そのままの JSON・前後の空白や改行があっても読める', () => {
+    expect(parseServiceAccount(JSON.stringify(sa))).toEqual(sa)
+    expect(parseServiceAccount(`\n  ${JSON.stringify(sa, null, 2)}  \n`)).toEqual(sa)
+  })
+
+  it('貼るときに 1 行にまとめられても、鍵の改行が \\n の文字のままでも読める', () => {
+    const oneLine = JSON.stringify(sa, null, 2).replace(/\n/g, ' ')
+    expect(parseServiceAccount(oneLine)).toEqual(sa)
+    const doubled = JSON.stringify({ ...sa, private_key: sa.private_key.replace(/\n/g, '\\n') })
+    expect(parseServiceAccount(doubled).private_key).toBe(sa.private_key)
+  })
+
+  it('鍵の文字列の中に本物の改行が入ってしまっていても読める', () => {
+    const raw = JSON.stringify(sa).replace(/\\n/g, '\n')
+    expect(parseServiceAccount(raw).private_key).toBe(sa.private_key)
+  })
+
+  it('JSON でない・必要な項目がないときは null', () => {
+    expect(parseServiceAccount('')).toBeNull()
+    expect(parseServiceAccount('FIREBASE=abc')).toBeNull()
+    expect(parseServiceAccount(JSON.stringify({ type: 'service_account' }))).toBeNull()
   })
 })

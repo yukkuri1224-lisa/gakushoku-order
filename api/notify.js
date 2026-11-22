@@ -7,19 +7,33 @@ import { cert, getApps, initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore } from 'firebase-admin/firestore'
 import { getMessaging } from 'firebase-admin/messaging'
-import { handleNotify } from './_notify-core.js'
+import { handleNotify, parseServiceAccount } from './_notify-core.js'
 
+/** @returns {import('firebase-admin/app').App | 'missing' | 'invalid'} */
 function app() {
   if (getApps().length > 0) return getApps()[0]
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT
-  if (!raw) return null
-  return initializeApp({ credential: cert(JSON.parse(raw)) })
+  if (!raw) return 'missing'
+  const account = parseServiceAccount(raw)
+  if (!account) return 'invalid'
+  try {
+    return initializeApp({ credential: cert(account) })
+  } catch (e) {
+    console.error(e)
+    return 'invalid'
+  }
 }
 
 export default async function handler(req, res) {
   const a = app()
-  if (!a) {
+  if (a === 'missing') {
     res.status(500).json({ error: '通知の設定（FIREBASE_SERVICE_ACCOUNT）がまだです' })
+    return
+  }
+  if (a === 'invalid') {
+    res.status(500).json({
+      error: 'FIREBASE_SERVICE_ACCOUNT を読めませんでした。サービスアカウントの JSON ファイルの中身をまるごと貼ってください',
+    })
     return
   }
   const db = getFirestore(a)
