@@ -73,6 +73,7 @@ export function StaffAccountGate({
     <StaffLoginScreen
       onSignIn={onSignIn}
       onGoogleSignIn={onGoogleSignIn}
+      signedInAs={login.status === 'signedIn' ? { email: login.email, uid: login.uid } : undefined}
       notice={
         login.status === 'signedIn'
           ? '学生のアカウントでログインしています。厨房ボードを使うには、スタッフに登録したアカウントでログインしてください。'

@@ -18,11 +18,14 @@ export function StaffLoginScreen({
   onSignIn,
   onGoogleSignIn,
   notice,
+  signedInAs,
 }: {
   onSignIn: (email: string, password: string) => Promise<void>
   /** Google でログイン（学校のアカウントなど、名簿にあるアカウント） */
   onGoogleSignIn?: () => Promise<void>
   notice?: string
+  /** ログインはしているが名簿にないアカウント（名簿に登録するための UID を出す） */
+  signedInAs?: { email: string; uid: string }
 }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -76,6 +79,7 @@ export function StaffLoginScreen({
       description="食堂スタッフ専用の画面です。"
       footer={{ to: '/', label: '注文画面に戻る' }}
     >
+      {signedInAs && <AccountUid {...signedInAs} />}
       {notice && (
         <p className="mb-4 rounded-2xl bg-white px-4 py-3 text-sm font-bold leading-relaxed text-ink shadow-card">
           {notice}
@@ -172,5 +176,39 @@ export function StaffLoginScreen({
         アカウントは食堂の責任者が用意します。パスワードはほかの人に教えず、共用の端末では使い終わったらログアウトしてください。
       </p>
     </EntranceScreen>
+  )
+}
+
+/**
+ * いまログインしているアカウントと UID（管理者が名簿に登録するとき、写し間違えないように）。
+ * Firestore の staffMembers に、この UID をドキュメント ID にして追加すると、このアカウントで厨房ボードに入れる。
+ */
+function AccountUid({ email, uid }: { email: string; uid: string }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <div className="mb-4 rounded-2xl border border-ink-line bg-white px-4 py-3 text-[13px] leading-relaxed">
+      <p className="text-ink-sub">いまログインしているアカウント</p>
+      <p className="break-all font-bold">{email}</p>
+      <p className="mt-2 text-ink-sub">UID（スタッフの名簿に登録するときに使います）</p>
+      <p className="break-all font-mono text-sm font-bold">{uid}</p>
+      <button
+        type="button"
+        onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(uid)
+            setCopied(true)
+          } catch {
+            setCopied(false)
+          }
+        }}
+        className="mt-2 h-10 rounded-full border border-ink-line px-4 text-sm font-bold"
+      >
+        {copied ? 'コピーしました' : 'UID をコピー'}
+      </button>
+      <p className="mt-2 text-xs text-ink-sub">
+        管理者の方へ: Firebase の Firestore で、コレクション <span className="font-mono font-bold">staffMembers</span>
+        （M は大文字）に、この UID をドキュメント ID にして追加すると、このアカウントで厨房ボードを使えます。
+      </p>
+    </div>
   )
 }
