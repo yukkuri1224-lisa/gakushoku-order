@@ -8,19 +8,11 @@ import { NotifyCard } from '@/components/NotifyCard'
 import { NotifyPrompt } from '@/components/NotifyPrompt'
 import { ChevronRightIcon, DiningIcon } from '@/components/icons'
 import { useDiningStore } from '@/store/dining'
-import { greeting } from '@/lib/greeting'
 import { DINING_LABEL, type DiningOption } from '@/types/order'
 
-const OPTIONS: { option: DiningOption; description: string; note?: string }[] = [
-  {
-    option: 'eat_in',
-    description: '食堂の席で食べられます',
-    note: '席を確保してからご注文ください',
-  },
-  {
-    option: 'takeout',
-    description: 'お持ち帰り用にご用意します',
-  },
+const OPTIONS: { option: DiningOption; note?: string }[] = [
+  { option: 'eat_in', note: '席を確保してからご注文ください' },
+  { option: 'takeout' },
 ]
 
 // ログイン（または合言葉）の直後の最初の画面。ご利用方法（店内／お持ち帰り）を選ぶとメニューへ進む。
@@ -41,8 +33,7 @@ export function DiningPage() {
       <AppHeader title="LiSA校食堂" />
       <main className="mx-auto max-w-md px-4">
         <ActiveOrders className="pt-4" />
-        <p className="pt-8 text-sm font-bold text-brand-dark">{greeting()}</p>
-        <h1 className="text-keep mt-1 text-2xl font-bold">
+        <h1 className="text-keep pt-8 text-2xl font-bold">
           ご利用方法を選んでください
         </h1>
         <p className="mt-2 text-[15px] text-ink-sub">
@@ -50,7 +41,7 @@ export function DiningPage() {
         </p>
 
         <div className="mt-6 space-y-3">
-          {OPTIONS.map(({ option, description, note }) => {
+          {OPTIONS.map(({ option, note }) => {
             const selected = current === option
             return (
               <button
@@ -72,9 +63,6 @@ export function DiningPage() {
                         選択中
                       </span>
                     )}
-                  </span>
-                  <span className="mt-0.5 block text-[13px] text-ink-sub">
-                    {description}
                   </span>
                   {note && (
                     <span className="mt-2 inline-block rounded-full bg-accent-bg px-2.5 py-1 text-xs font-bold text-accent-fg">

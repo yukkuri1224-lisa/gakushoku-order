@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { rememberOrder, todaysOrderIds } from './myOrders'
+import { markReceived, rememberOrder, todaysOrderIds } from './myOrders'
 
 const day = (d: number, h = 12, m = 0) => new Date(2026, 9, d, h, m).getTime()
 
@@ -30,4 +30,16 @@ describe('この端末でした注文の記録', () => {
     localStorage.setItem('gakushoku.myOrders', '{broken')
     expect(todaysOrderIds(new Date(day(23, 13)))).toEqual([])
   })
+
+  it('受け取った注文は、注文中のカードに出さない', () => {
+    const now = new Date(day(23, 13))
+    rememberOrder('a', day(23, 12))
+    rememberOrder('b', day(23, 12, 30))
+    markReceived('a')
+    expect(todaysOrderIds(now)).toEqual(['b'])
+    // あとから同じ注文を記録し直しても（登録のやり直し）、受け取った印は残す
+    rememberOrder('a', day(23, 12))
+    expect(todaysOrderIds(now)).toEqual(['b'])
+  })
 })
+

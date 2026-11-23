@@ -1,16 +1,28 @@
 import { Link } from 'react-router-dom'
 import { ChevronRightIcon } from '@/components/icons'
 import { ReadyOverlay } from '@/components/ReadyOverlay'
+import { useState } from 'react'
 import { useCompletionAlert, useMyOrders } from '@/hooks/useOrders'
+import { markReceived } from '@/lib/myOrders'
 import { isShownInActiveCard } from '@/lib/orderProgress'
 import { DINING_LABEL, STATUS_LABEL } from '@/types/order'
 
 // 「注文中」カード。この端末で今日した注文のうち、進行中・できあがり直後のものを出す。
 // 注文番号の画面を閉じても、ここから状況に戻れる。できあがったら全画面でお知らせする。
+// 「受け取りました」を押した注文は出さない。
 export function ActiveOrders({ className = '' }: { className?: string }) {
   const mine = useMyOrders()
   const { ready, dismiss } = useCompletionAlert(mine)
-  const shown = mine.filter((o) => isShownInActiveCard(o, Date.now()))
+  const [received, setReceived] = useState<Set<string>>(() => new Set())
+  const shown = mine.filter((o) => !received.has(o.id) && isShownInActiveCard(o, Date.now()))
+
+  const receive = () => {
+    if (ready) {
+      markReceived(ready.id)
+      setReceived((s) => new Set(s).add(ready.id))
+    }
+    dismiss()
+  }
 
   return (
     <>
@@ -50,7 +62,7 @@ export function ActiveOrders({ className = '' }: { className?: string }) {
           })}
         </section>
       )}
-      {ready && <ReadyOverlay order={ready} onClose={dismiss} />}
+      {ready && <ReadyOverlay order={ready} onClose={receive} />}
     </>
   )
 }

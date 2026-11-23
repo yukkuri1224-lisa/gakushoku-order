@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { itemKey } from '@/lib/menuOptions'
 import { formatPickup } from '@/lib/pickup'
+import { markReceived } from '@/lib/myOrders'
 import { useActiveOrders, useCompletionAlert, useOrder } from '@/hooks/useOrders'
 import { AppHeader } from '@/components/AppHeader'
 import { OptionTags } from '@/components/OptionTags'
@@ -82,8 +83,9 @@ export function OrderStatusPage() {
   const watched = useMemo(() => (order ? [order] : []), [order])
   const { ready, dismiss } = useCompletionAlert(watched)
   const navigate = useNavigate()
-  // 受け取ったら、元の注文の画面（メニュー）に戻る
+  // 受け取ったら、注文中のカードから外して、元の注文の画面（メニュー）に戻る
   const received = () => {
+    if (order) markReceived(order.id)
     dismiss()
     navigate('/menu')
   }
