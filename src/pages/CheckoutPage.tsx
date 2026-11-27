@@ -10,6 +10,7 @@ import { cartCount, cartTotal, useCartStore } from '@/store/cart'
 import { useDiningStore } from '@/store/dining'
 import { useOrderPrefs } from '@/store/orderPrefs'
 import { RadioCards } from '@/components/RadioCards'
+import { PayNoticeDialog } from '@/components/PayNoticeDialog'
 import { currentDraft } from '@/lib/orderDraft'
 import { formatPickup, isPickupValid, pickupSlots } from '@/lib/pickup'
 import { useSoldOut } from '@/hooks/useSoldOut'
@@ -60,6 +61,8 @@ export function CheckoutPage() {
   const pickupValid = pickupAt === null || isPickupValid(pickupAt, now)
 
   const [paying, setPaying] = useState(false)
+  // 支払いの前の注意（PayPay のあと mealgo に戻らないと注文が完了しない）
+  const [notice, setNotice] = useState(false)
   // PayPay から戻った直後（?pp=return）は最初から確認画面を出す
   const [confirming, setConfirming] = useState(
     () => new URLSearchParams(location.search).get('pp') === 'return',
@@ -380,7 +383,7 @@ export function CheckoutPage() {
           <button
             type="button"
             disabled={paying || blockedReason !== null}
-            onClick={handlePay}
+            onClick={() => setNotice(true)}
             className={`flex h-14 w-full items-center justify-center rounded-full text-base font-bold disabled:cursor-not-allowed ${
               blockedReason ? 'bg-surface text-ink-sub' : 'bg-paypay text-white disabled:opacity-60'
             }`}
@@ -398,6 +401,15 @@ export function CheckoutPage() {
           </button>
         </div>
       </div>
+      {notice && (
+        <PayNoticeDialog
+          onClose={() => setNotice(false)}
+          onConfirm={() => {
+            setNotice(false)
+            void handlePay()
+          }}
+        />
+      )}
     </div>
   )
 }

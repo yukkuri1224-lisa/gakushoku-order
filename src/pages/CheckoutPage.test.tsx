@@ -139,3 +139,17 @@ describe('注文する人', () => {
     expect(teacher.getAttribute('aria-checked')).toBe('true')
   })
 })
+
+describe('支払いの前の注意', () => {
+  it('支払うボタンを押すと「決済しただけでは注文は完了しません」と出し、閉じれば支払わない', () => {
+    useDiningStore.setState({ option: 'eat_in' })
+    const el = render()
+    act(() => findButton(el, 'で支払う')!.click())
+    const dialog = document.querySelector('[role="alertdialog"]') as HTMLElement
+    expect(dialog.textContent).toContain('決済しただけでは注文は完了しません')
+    expect(dialog.textContent).toContain('mealgo')
+    expect(findButton(dialog, '注意事項を理解し、PayPay を開く')).toBeDefined()
+    act(() => (dialog.querySelector('button[aria-label="閉じる"]') as HTMLButtonElement).click())
+    expect(document.querySelector('[role="alertdialog"]')).toBeNull()
+  })
+})
